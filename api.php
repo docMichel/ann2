@@ -78,71 +78,20 @@ function logDebug($message)
 logDebug("API CALL: {$_SERVER['REQUEST_METHOD']} ?action=$action");
 
 // Créer la base si elle n'existe pas
+// Créer la base si elle n'existe pas
 try {
-    $pdoRoot = new PDO(
-        "mysql:host=localhost",
-        'root',
-        'mysqlroot',
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+    require_once BASE_PATH . '/db-manager.php';
 
-    $result = $pdoRoot->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$dbName'");
+    $dbCheck = DatabaseManager::checkDatabase($dbName);
 
-    if ($result->rowCount() === 0) {
-        logDebug("=== CRÉATION BASE $dbName ===");
-
-        $pdoRoot->exec("CREATE DATABASE `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        $pdoRoot->exec("USE `$dbName`");
-        logDebug("✓ Database créée et sélectionnée");
-
-        $schemaFile = BASE_PATH . '/schema_update.sql';
-        $sql = file_get_contents($schemaFile);
-
-        // Virer les commentaires
-        $sql = preg_replace('/--.*$/m', '', $sql);
-
-        // Split sur ; mais en gardant ce qui est entre quotes
-        $statements = [];
-        $current = '';
-        $inString = false;
-        $stringChar = '';
-
-        for ($i = 0; $i < strlen($sql); $i++) {
-            $char = $sql[$i];
-
-            if (!$inString && ($char === '"' || $char === "'")) {
-                $inString = true;
-                $stringChar = $char;
-            } elseif ($inString && $char === $stringChar && $sql[$i - 1] !== '\\') {
-                $inString = false;
-            }
-
-            if (!$inString && $char === ';') {
-                $stmt = trim($current);
-                if (!empty($stmt)) {
-                    $statements[] = $stmt;
-                }
-                $current = '';
-            } else {
-                $current .= $char;
-            }
-        }
-
-        logDebug("Nombre statements: " . count($statements));
-
-        foreach ($statements as $i => $stmt) {
-            try {
-                $pdoRoot->exec($stmt);
-                logDebug("✓ Statement #$i OK");
-            } catch (Exception $e) {
-                logDebug("⚠ Statement #$i: " . $e->getMessage());
-            }
-        }
-
-        logDebug("✅ Tables créées");
+    if (!$dbCheck['exists'] || !$dbCheck['has_tables']) {
+        logDebug("Base '$dbName' nécessite initialisation (exists={$dbCheck['exists']}, tables={$dbCheck['table_count']})");
+        DatabaseManager::createDatabase($dbName);
+    } else {
+        logDebug("Base '$dbName' OK ({$dbCheck['table_count']} tables)");
     }
 } catch (Exception $e) {
-    logDebug("Erreur création base: " . $e->getMessage());
+    logDebug("Erreur init base: " . $e->getMessage());
     jsonError('Erreur initialisation base de données: ' . $e->getMessage(), 500);
 }
 

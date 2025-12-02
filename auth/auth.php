@@ -216,8 +216,11 @@ class Auth
         $userData = $pending[$email];
         $dbName = 'annonces_messages_' . preg_replace('/[^a-z0-9]/', '_', strtolower(explode('@', $email)[0]));
 
+        // Utiliser le DatabaseManager (source unique de vérité)
+        require_once BASE_PATH . '/db-manager.php';
+
         try {
-            self::createDatabase($dbName);
+            DatabaseManager::createDatabase($dbName);
         } catch (Exception $e) {
             return ['success' => false, 'error' => 'Erreur création BDD: ' . $e->getMessage()];
         }
