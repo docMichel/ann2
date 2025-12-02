@@ -2,8 +2,8 @@
   "email": "docgemini@gmail.com",
   "password": "rencontres-1234MJ",
   "apiUrl": "http://localhost/ann2/api.php?action=save",
-  "maxPages": 5,
-  "maxConversations": 600,
+  "maxPages": 55,
+  "maxConversations": 20000,
   "timeouts": {
     "modal": 1500,
     "input": 200,

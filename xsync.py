@@ -1,41 +1,21 @@
 #!/usr/bin/env python3
 """
-Scraper Annonces.nc - Multi-utilisateurs avec Playwright
-
-MODIFICATIONS:
-- Support --config pour fichier de config custom
-- Envoi du header X-User-Database à l'API
-- Notification Telegram à la fin
-
+Scraper Annonces.nc - Automatisé avec Playwright
 Usage:
-    python3 sync.py --config=config/temp_user1.json
-    python3 sync.py --config=config/temp_user1.json --headful
-    python3 sync.py --config=config/temp_user1.json --firefox
+    python3 sync.py                    # Headless (production)
+    python3 sync.py --headful          # Visible (debug)
+    python3 sync.py --firefox          # Utiliser Firefox au lieu de Chromium
 """
 
 import sys
 import json
 import time
-import argparse
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 
-# ========== PARSE ARGUMENTS ==========
-parser = argparse.ArgumentParser(description='Scraper Annonces.nc')
-parser.add_argument('--config', type=str, help='Fichier de configuration JSON')
-parser.add_argument('--headful', action='store_true', help='Mode visible (debug)')
-parser.add_argument('--firefox', action='store_true', help='Utiliser Firefox')
-args = parser.parse_args()
-
 # ========== CONFIG ==========
 SCRAPER_DIR = Path(__file__).parent
-
-# Utiliser le fichier de config fourni ou le défaut
-if args.config:
-    CONFIG_FILE = Path(args.config)
-else:
-    CONFIG_FILE = SCRAPER_DIR / 'scraper-config.json'
-
+CONFIG_FILE = SCRAPER_DIR / 'scraper-config.json'
 LOGIN_JS = SCRAPER_DIR / 'login.js'
 SCRAPER_JS = SCRAPER_DIR / 'scraper.js'
 TARGET_URL = 'https://annonces.nc/dashboard/conversations'
@@ -51,6 +31,7 @@ def load_config():
     """Charge la config depuis JSON"""
     if not CONFIG_FILE.exists():
         error(f'Config manquante: {CONFIG_FILE}')
+        error('Créez-la avec: python3 edit-config.py set-creds "email" "password"')
         sys.exit(1)
     
     with open(CONFIG_FILE) as f:
@@ -58,6 +39,7 @@ def load_config():
     
     if not config.get('email') or not config.get('password'):
         error('Credentials manquants dans config')
+        error('Utilisez: python3 edit-config.py set-creds "email" "password"')
         sys.exit(1)
     
     return config
@@ -74,6 +56,7 @@ def load_script(script_path):
 def inject_config(page, config):
     """Injecte la config dans localStorage du navigateur"""
     config_json = json.dumps(config)
+    # Échapper les quotes et backslashes pour JavaScript
     config_escaped = config_json.replace('\\', '\\\\').replace("'", "\\'")
     
     page.evaluate(f"""
@@ -81,64 +64,14 @@ def inject_config(page, config):
         console.log('[PYTHON] Config injectée dans localStorage');
     """)
 
-def extract_db_name_from_api_url(api_url):
-    """Extrait le nom de base depuis l'URL de l'API"""
-    # L'API devrait contenir le nom de base dans le path ou en paramètre
-    # Par défaut on essaie de le déduire du fichier de config
-    return None
-
-def send_telegram_notification(config, stats):
-    """Envoie une notification Telegram de fin de scraping"""
-    try:
-        import requests
-        
-        users_config_file = SCRAPER_DIR / 'config' / 'users.json'
-        if not users_config_file.exists():
-            return
-        
-        with open(users_config_file) as f:
-            users_config = json.load(f)
-        
-        if not users_config.get('telegram', {}).get('enabled'):
-            return
-        
-        bot_token = users_config['telegram']['bot_token']
-        
-        # Trouver le chat_id de l'utilisateur correspondant
-        chat_id = None
-        for user in users_config['users']:
-            if user['annonces_email'] == config['email']:
-                chat_id = user.get('telegram_chat_id')
-                break
-        
-        if not chat_id or not bot_token:
-            return
-        
-        # Construire le message
-        message = f"✅ <b>Scraping terminé</b>\n\n"
-        message += f"📊 <b>Résumé:</b>\n"
-        message += f"  • Total: {stats['total']} conversations\n"
-        message += f"  • Succès: {stats['succeeded']}\n"
-        message += f"  • Échecs: {stats['failed']}\n"
-        message += f"\n⏰ {time.strftime('%d/%m/%Y à %H:%M')}"
-        
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        data = {
-            'chat_id': chat_id,
-            'text': message,
-            'parse_mode': 'HTML'
-        }
-        
-        requests.post(url, data=data, timeout=10)
-        log('📱 Notification Telegram envoyée')
-        
-    except Exception as e:
-        log(f'⚠️  Erreur notification Telegram: {e}')
-
 # ========== MAIN ==========
 def run_scraper(headless=True, browser_type='chromium'):
     """
     Lance le scraper en 2 étapes : login puis scraping
+    
+    Args:
+        headless: True = invisible, False = visible
+        browser_type: 'firefox' ou 'chromium'
     """
     
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -152,27 +85,11 @@ def run_scraper(headless=True, browser_type='chromium'):
     log(f'   API: {config["apiUrl"]}')
     log(f'   Max conversations: {config["maxConversations"]}')
     
-    # Extraire le nom de base pour le header
-    db_name = config.get('db_name')
-    if not db_name:
-        # Essayer de le déduire du nom de fichier config
-        if args.config:
-            username = Path(args.config).stem.replace('temp_', '')
-            db_name = f'annonces_messages_{username}'
-        else:
-            db_name = 'annonces_messages_default'
-    
-    log(f'   Database: {db_name}')
-    
     log('📜 Chargement scripts JS...')
     login_js = load_script(LOGIN_JS)
     scraper_js = load_script(SCRAPER_JS)
-    
-    # Modifier scraper.js pour ajouter le header X-User-Database
-    scraper_js_modified = scraper_js.replace(
-        "headers: { 'Content-Type': 'application/json' }",
-        f"headers: {{ 'Content-Type': 'application/json', 'X-User-Database': '{db_name}' }}"
-    )
+    log(f'   login.js: {len(login_js)} caractères')
+    log(f'   scraper.js: {len(scraper_js)} caractères')
     
     # 2. Lancer navigateur
     mode = 'HEADLESS' if headless else 'HEADFUL'
@@ -182,22 +99,23 @@ def run_scraper(headless=True, browser_type='chromium'):
         # Choisir le navigateur
         if browser_type == 'firefox':
             browser = p.firefox.launch(headless=headless)
-        else:
+        else:    # Chromium avec désactivation CORS pour dev
             browser = p.chromium.launch(
                 headless=headless,
                 args=[
                     '--disable-web-security',
                     '--disable-features=IsolateOrigins,site-per-process'
                 ]
+            
             )
-        
+        # Créer contexte
         context = browser.new_context(
             viewport={'width': 1920, 'height': 1080},
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
         )
         page = context.new_page()
         
-        # LISTENER CONSOLE
+        # LISTENER CONSOLE - Version correcte selon la doc Playwright
         page.on("console", lambda msg: print(msg.text))
         
         try:
@@ -205,6 +123,8 @@ def run_scraper(headless=True, browser_type='chromium'):
             log(f'🔗 Navigation vers {TARGET_URL}...')
             page.goto(TARGET_URL, wait_until='domcontentloaded', timeout=30000)
             log('✅ Page chargée')
+            
+            # Attendre que le DOM soit stable
             time.sleep(2)
             
             # 4. Injecter config
@@ -221,22 +141,29 @@ def run_scraper(headless=True, browser_type='chromium'):
             
             if not login_result.get('success'):
                 error(f'Échec login: {login_result.get("message")}')
+                error(f'Status: {login_result.get("status")}')
                 
+                # Screenshot en cas d'erreur
                 if headless:
-                    screenshot_path = SCRAPER_DIR / f'error-login-{db_name}.png'
+                    screenshot_path = SCRAPER_DIR / 'error-login.png'
                     page.screenshot(path=str(screenshot_path))
                     log(f'📸 Screenshot sauvegardé: {screenshot_path}')
                 
                 return False
             
-            log(f'✅ Login: {login_result.get("message")}')
+            log(f'✅ Login: {login_result.get("message")} (status: {login_result.get("status")})')
             
+            # Si login a eu lieu, attendre stabilisation (redirection possible)
             if login_result.get('status') == 'logged_in':
                 log('⏳ Attente stabilisation après login (5s)...')
                 time.sleep(5)
-                log('💉 Ré-injection config...')
+                
+                # Ré-injecter config au cas où (la page peut avoir été rechargée)
+                log('💉 Ré-injection config (sécurité)...')
                 inject_config(page, config)
             else:
+                # Déjà connecté, attente courte
+                log('⏳ Attente stabilisation (2s)...')
                 time.sleep(2)
             
             # ========== ÉTAPE 2 : SCRAPING ==========
@@ -245,13 +172,15 @@ def run_scraper(headless=True, browser_type='chromium'):
             log('📊 ÉTAPE 2/2 : SCRAPING')
             log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
             
-            scraper_result = page.evaluate(scraper_js_modified)
+            scraper_result = page.evaluate(scraper_js)
             
             if not scraper_result.get('success'):
-                error(f'Échec scraping: {scraper_result.get("error")}')
+                error_type = scraper_result.get('error', 'unknown')
+                error(f'Échec scraping: {error_type}')
                 
+                # Screenshot en cas d'erreur
                 if headless:
-                    screenshot_path = SCRAPER_DIR / f'error-scraper-{db_name}.png'
+                    screenshot_path = SCRAPER_DIR / 'error-scraper.png'
                     page.screenshot(path=str(screenshot_path))
                     log(f'📸 Screenshot sauvegardé: {screenshot_path}')
                 
@@ -265,44 +194,45 @@ def run_scraper(headless=True, browser_type='chromium'):
             log(f'Succès: {scraper_result.get("succeeded", 0)}')
             log(f'Échecs: {scraper_result.get("failed", 0)}')
             
-            # Notification Telegram
-            send_telegram_notification(config, scraper_result)
-            
             return True
             
         except PlaywrightTimeout as e:
             error(f'Timeout: {e}')
+            
             if headless:
-                screenshot_path = SCRAPER_DIR / f'error-timeout-{db_name}.png'
+                screenshot_path = SCRAPER_DIR / 'error-timeout.png'
                 page.screenshot(path=str(screenshot_path))
+                log(f'📸 Screenshot sauvegardé: {screenshot_path}')
+            
             return False
             
         except Exception as e:
             error(f'Erreur: {e}')
+            
             if headless:
-                screenshot_path = SCRAPER_DIR / f'error-exception-{db_name}.png'
+                screenshot_path = SCRAPER_DIR / 'error-exception.png'
                 page.screenshot(path=str(screenshot_path))
+                log(f'📸 Screenshot sauvegardé: {screenshot_path}')
+            
             return False
         
         finally:
+            # Fermer navigateur
             if not headless:
-                log('⏸️  Appuyez sur Entrée pour fermer...')
+                log('')
+                log('⏸️  Navigateur visible, appuyez sur Entrée pour fermer...')
                 input()
+            
             browser.close()
 
 # ========== CLI ==========
 if __name__ == '__main__':
-    headless = not args.headful
-    browser_type = 'firefox' if args.firefox else 'chromium'
+    # Parser arguments
+    headless = '--headful' not in sys.argv
+    browser_type = 'firefox' if '--firefox' in sys.argv else 'chromium'
     
+    # Lancer
     success = run_scraper(headless=headless, browser_type=browser_type)
     
-    # Cleanup du fichier de config temporaire
-    if args.config and Path(args.config).stem.startswith('temp_'):
-        try:
-            Path(args.config).unlink()
-            log(f'🧹 Config temporaire supprimée: {args.config}')
-        except:
-            pass
-    
+    # Exit code
     sys.exit(0 if success else 1)

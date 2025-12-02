@@ -1,15 +1,137 @@
+<?php
+
+/**
+ * Index.php avec authentification
+ */
+
+require_once __DIR__ . '/auth/auth.php';
+Auth::requireAuth();
+
+$user = Auth::getCurrentUser();
+$username = explode('@', $user['email'])[0];
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Messages Annonces.nc</title>
+    <title>Messages Annonces.nc - <?= htmlspecialchars($username) ?></title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Ajout styles pour header étendu */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .btn-sync {
+            padding: 8px 15px;
+            background: #77DD77;
+            border: none;
+            color: #1a1a1a;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-sync:hover {
+            background: #5BC75B;
+        }
+
+        .btn-sync:disabled {
+            background: #3a3a3a;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .btn-sync.running {
+            background: #FFB84D;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .user-badge {
+            padding: 6px 12px;
+            background: #3a3a3a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .btn-logout {
+            padding: 8px 15px;
+            background: #3a3a3a;
+            border: none;
+            color: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-logout:hover {
+            background: #ff6b6b;
+        }
+
+        /* Annonces supprimées */
+        .item.deleted {
+            opacity: 0.6;
+        }
+
+        .item.deleted .item-title::before {
+            content: "🗑️ ";
+        }
+
+        .item.deleted .item-title {
+            color: #888;
+            text-decoration: line-through;
+        }
+
+        @media (max-width: 768px) {
+            .header-right {
+                gap: 6px;
+            }
+
+            .btn-sync,
+            .btn-logout {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .user-badge {
+                display: none;
+            }
+        }
+
+        @media (max-width: 599px) {
+            .header-right {
+                display: none;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Header avec toggle -->
+    <!-- Header avec toggle + contrôles utilisateur -->
     <header class="top-header">
         <div class="toggle-view">
             <button class="toggle-btn active" id="btnAnnonces" onclick="setView('annonces')">
@@ -22,11 +144,19 @@
                 📊 Édition Users
             </button>
         </div>
-        <button class="fullscreen-btn" id="fullscreenBtn"
-            onclick="toggleFullscreen()">⛶</button>
+
+        <div class="header-right">
+            <button class="btn-sync" id="btnSync" onclick="launchScraper()">
+                🔄 Récupérer
+            </button>
+            <span class="user-badge">👤 <?= htmlspecialchars($username) ?></span>
+            <button class="btn-logout" onclick="logout()">Déco</button>
+        </div>
+
+        <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()">⛶</button>
     </header>
 
-    <!-- Container accordéon (vue normale) -->
+    <!-- Container accordéon (identique à l'original) -->
     <main class="accordion-container" id="mainContainer">
         <!-- Section 1: Annonces/Users -->
         <section class="accordion-section" id="section1">
@@ -79,7 +209,7 @@
         </section>
     </main>
 
-    <!-- Vue tableau Users (cachée par défaut) -->
+    <!-- Vue tableau Users (identique à l'original) -->
     <div class="table-view" id="tableView" style="display: none;">
         <table class="users-table">
             <thead>
@@ -135,9 +265,84 @@
     </div>
 
     <script src="app.js"></script>
+    <script>
+        // ========== SCRAPER ==========
+
+        async function launchScraper() {
+            const btn = document.getElementById('btnSync');
+
+            if (btn.classList.contains('running')) {
+                showFlash('⚠️ Un scraper est déjà en cours');
+                return;
+            }
+
+            if (!confirm('Lancer la récupération des messages ?\n\nCela peut prendre plusieurs minutes.')) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.classList.add('running');
+            btn.textContent = '⏳ En cours...';
+
+            try {
+                const res = await fetch('sync.php', {
+                    method: 'POST'
+                });
+                const result = await res.json();
+
+                if (result.status === 'started') {
+                    showFlash('✅ Scraper lancé en arrière-plan');
+
+                    // Vérifier le statut périodiquement
+                    checkScraperStatus();
+                } else if (result.status === 'running') {
+                    showFlash('⚠️ ' + result.message);
+                } else {
+                    throw new Error(result.message || 'Erreur inconnue');
+                }
+            } catch (e) {
+                showFlash('❌ Erreur: ' + e.message);
+                btn.disabled = false;
+                btn.classList.remove('running');
+                btn.textContent = '🔄 Récupérer';
+            }
+        }
+
+        function checkScraperStatus() {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch('sync-status.php');
+                    const result = await res.json();
+
+                    if (result.status === 'idle') {
+                        clearInterval(interval);
+
+                        const btn = document.getElementById('btnSync');
+                        btn.disabled = false;
+                        btn.classList.remove('running');
+                        btn.textContent = '🔄 Récupérer';
+
+                        showFlash('✅ Synchronisation terminée');
+
+                        // Recharger les données
+                        if (currentView === 'annonces') {
+                            loadAnnonces();
+                        } else if (currentView === 'users') {
+                            loadUsers();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Erreur check status:', e);
+                }
+            }, 10000); // Vérifier toutes les 10 secondes
+        }
+
+        function logout() {
+            if (confirm('Se déconnecter ?')) {
+                window.location.href = 'auth/logout.php';
+            }
+        }
+    </script>
 </body>
 
 </html>
-
-
-thomas: 936193

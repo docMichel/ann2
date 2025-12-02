@@ -1,162 +1,56 @@
 <?php
 
 /**
- * API REST multi-utilisateurs avec gestion robuste des erreurs
+ * API REST pour messages annonces.nc - VERSION UNIFIÉE
+ * Fichier: api.php
  */
 
-// Désactiver l'affichage des erreurs (on retourne du JSON)
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
-
-// Forcer JSON dès le début
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET');
-header('Access-Control-Allow-Headers: Content-Type, X-User-Database');
+header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// Fonction pour toujours retourner du JSON propre
-function jsonError($message, $code = 500)
-{
-    http_response_code($code);
-    echo json_encode(['error' => $message, 'success' => false]);
-    exit;
-}
+// Config
+$dbConfig = [
+    'host' => 'localhost',
+    'dbname' => 'annonces_messages',
+    'user' => 'root',
+    'password' => 'mysqlroot'
+];
 
-function jsonSuccess($data)
-{
-    echo json_encode(array_merge(['success' => true], $data));
-    exit;
-}
+// Activer les logs d'erreur
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// Charger les dépendances
-require_once __DIR__ . '/config.php';
-
-$action = $_GET['action'] ?? '';
-
-// Auth sauf pour save
-if ($action !== 'save') {
-    require_once __DIR__ . '/auth/auth.php';
-    if (!Auth::isAuthenticated()) {
-        jsonError('Non authentifié', 401);
-    }
-}
-
-// Déterminer la base de données
-$dbName = null;
-
-if ($action === 'save') {
-    $dbName = $_SERVER['HTTP_X_USER_DATABASE'] ?? null;
-    if (!$dbName) {
-        jsonError('Header X-User-Database manquant', 400);
-    }
-} else {
-    require_once __DIR__ . '/auth/auth.php';
-    $user = Auth::getCurrentUser();
-    $dbName = $user['db_name'];
-
-    if (!$dbName) {
-        jsonError('Base de données non définie pour cet utilisateur', 500);
-    }
-}
-
-// Logs
-$logFile = BASE_PATH . '/logs/api_' . $dbName . '.log';
-@mkdir(BASE_PATH . '/logs', 0755, true);
+// ========== CONFIG LOGS DÉDIÉS ==========
+$logFile = __DIR__ . '/api_debug.log';
+ini_set('log_errors', 1);
+ini_set('error_log', $logFile);
 
 function logDebug($message)
 {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
-    @file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+    file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
 }
 
-logDebug("API CALL: {$_SERVER['REQUEST_METHOD']} ?action=$action");
+logDebug("═══════════════════════════════════════════════════");
+logDebug("🚀 API CALL: {$_SERVER['REQUEST_METHOD']} ?action=" . ($_GET['action'] ?? 'none'));
 
-// Créer la base si elle n'existe pas
-try {
-    $pdoRoot = new PDO(
-        "mysql:host=localhost",
-        'root',
-        'mysqlroot',
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-
-    $result = $pdoRoot->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$dbName'");
-
-    if ($result->rowCount() === 0) {
-        logDebug("=== CRÉATION BASE $dbName ===");
-
-        $pdoRoot->exec("CREATE DATABASE `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        $pdoRoot->exec("USE `$dbName`");
-        logDebug("✓ Database créée et sélectionnée");
-
-        $schemaFile = BASE_PATH . '/schema_update.sql';
-        $sql = file_get_contents($schemaFile);
-
-        // Virer les commentaires
-        $sql = preg_replace('/--.*$/m', '', $sql);
-
-        // Split sur ; mais en gardant ce qui est entre quotes
-        $statements = [];
-        $current = '';
-        $inString = false;
-        $stringChar = '';
-
-        for ($i = 0; $i < strlen($sql); $i++) {
-            $char = $sql[$i];
-
-            if (!$inString && ($char === '"' || $char === "'")) {
-                $inString = true;
-                $stringChar = $char;
-            } elseif ($inString && $char === $stringChar && $sql[$i - 1] !== '\\') {
-                $inString = false;
-            }
-
-            if (!$inString && $char === ';') {
-                $stmt = trim($current);
-                if (!empty($stmt)) {
-                    $statements[] = $stmt;
-                }
-                $current = '';
-            } else {
-                $current .= $char;
-            }
-        }
-
-        logDebug("Nombre statements: " . count($statements));
-
-        foreach ($statements as $i => $stmt) {
-            try {
-                $pdoRoot->exec($stmt);
-                logDebug("✓ Statement #$i OK");
-            } catch (Exception $e) {
-                logDebug("⚠ Statement #$i: " . $e->getMessage());
-            }
-        }
-
-        logDebug("✅ Tables créées");
-    }
-} catch (Exception $e) {
-    logDebug("Erreur création base: " . $e->getMessage());
-    jsonError('Erreur initialisation base de données: ' . $e->getMessage(), 500);
-}
-
-// Connexion à la base
 try {
     $pdo = new PDO(
-        "mysql:host=localhost;dbname=$dbName;charset=utf8mb4",
-        'root',
-        'mysqlroot',
+        "mysql:host={$dbConfig['host']};dbname={$dbConfig['dbname']};charset=utf8mb4",
+        $dbConfig['user'],
+        $dbConfig['password'],
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 } catch (PDOException $e) {
-    logDebug("Erreur connexion PDO: " . $e->getMessage());
-    jsonError('Erreur connexion base de données', 500);
+    die(json_encode(['error' => 'BDD: ' . $e->getMessage()]));
 }
 
 // ========== FONCTIONS DATETIME ==========
@@ -168,6 +62,7 @@ function parseApiDateToDateTime($dateStr)
         $dt = new DateTime($dateStr);
         return $dt->format('Y-m-d H:i:s');
     } catch (Exception $e) {
+        logDebug("⚠️ Erreur parse date API: $dateStr - " . $e->getMessage());
         return null;
     }
 }
@@ -175,41 +70,37 @@ function parseApiDateToDateTime($dateStr)
 // ========== ROUTER ==========
 
 $method = $_SERVER['REQUEST_METHOD'];
+$action = $_GET['action'] ?? '';
 
-try {
-    if ($method === 'POST' && $action === 'save') {
-        saveConversation($pdo, $dbName);
-    } elseif ($method === 'POST' && $action === 'update_user_comment') {
-        updateUserComment($pdo);
-    } elseif ($method === 'POST' && $action === 'update_user_photo') {
-        updateUserPhoto($pdo);
-    } elseif ($method === 'POST' && $action === 'update_user_profile') {
-        updateUserProfile($pdo);
-    } elseif ($method === 'POST' && $action === 'update_user_field') {
-        updateUserField($pdo);
-    } elseif ($method === 'GET' && $action === 'stats') {
-        getStats($pdo);
-    } elseif ($method === 'GET' && $action === 'annonces') {
-        getAnnonces($pdo);
-    } elseif ($method === 'GET' && $action === 'users') {
-        getUsers($pdo);
-    } elseif ($method === 'GET' && $action === 'conversations') {
-        getConversations($pdo);
-    } elseif ($method === 'GET' && $action === 'messages') {
-        getMessages($pdo);
-    } elseif ($method === 'GET' && $action === 'conversation_detail') {
-        getConversationDetail($pdo);
-    } else {
-        jsonError('Action invalide', 400);
-    }
-} catch (Exception $e) {
-    logDebug("Exception: " . $e->getMessage());
-    jsonError('Erreur serveur: ' . $e->getMessage(), 500);
+if ($method === 'POST' && $action === 'save') {
+    saveConversation($pdo);
+} elseif ($method === 'POST' && $action === 'update_user_comment') {
+    updateUserComment($pdo);
+} elseif ($method === 'POST' && $action === 'update_user_photo') {
+    updateUserPhoto($pdo);
+} elseif ($method === 'POST' && $action === 'update_user_profile') {
+    updateUserProfile($pdo);
+} elseif ($method === 'POST' && $action === 'update_user_field') {
+    updateUserField($pdo);
+} elseif ($method === 'GET' && $action === 'stats') {
+    getStats($pdo);
+} elseif ($method === 'GET' && $action === 'annonces') {
+    getAnnonces($pdo);
+} elseif ($method === 'GET' && $action === 'users') {
+    getUsers($pdo);
+} elseif ($method === 'GET' && $action === 'conversations') {
+    getConversations($pdo);
+} elseif ($method === 'GET' && $action === 'messages') {
+    getMessages($pdo);
+} elseif ($method === 'GET' && $action === 'conversation_detail') {
+    getConversationDetail($pdo);
+} else {
+    echo json_encode(['error' => 'Action invalide']);
 }
 
-// ========== SAVE CONVERSATION (avec notification Telegram) ==========
+// ========== SAVE CONVERSATION ==========
 
-function saveConversation($pdo, $dbName)
+function saveConversation($pdo)
 {
     logDebug("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     logDebug("🔵 API SAVE START");
@@ -229,8 +120,6 @@ function saveConversation($pdo, $dbName)
     logDebug("   - annonce_id: " . ($data['annonce_id'] ?? 'NULL'));
     logDebug("   - messages: " . count($data['messages'] ?? []));
 
-    $newMessagesCount = 0;
-
     try {
         $pdo->beginTransaction();
 
@@ -241,40 +130,31 @@ function saveConversation($pdo, $dbName)
             logDebug("📄 Traitement annonce ID: $annonceId");
 
             $stmt = $pdo->prepare("
-                INSERT INTO annonces (id, url, title, site, description, is_deleted) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO annonces (id, url, title, site, description) 
+                VALUES (?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE 
                     url = VALUES(url),
                     title = VALUES(title),
                     site = VALUES(site),
-                    description = COALESCE(VALUES(description), description),
-                    is_deleted = VALUES(is_deleted)
+                    description = COALESCE(VALUES(description), description)
             ");
 
             try {
-                $isDeleted = strpos($annonceId, 'deleted_') === 0;
-
                 $stmt->execute([
                     $annonceId,
                     $data['annonce_url'] ?? null,
                     $data['info']['title'] ?? 'Sans titre',
                     $data['info']['site'] ?? 'annonces.nc',
-                    $data['annonce_description'] ?? null,
-                    $isDeleted ? 1 : 0
+                    $data['annonce_description'] ?? null
                 ]);
-
-                if ($isDeleted) {
-                    logDebug("✅ Annonce supprimée $annonceId OK");
-                } else {
-                    logDebug("✅ Annonce $annonceId OK");
-                }
+                logDebug("✅ Annonce $annonceId OK");
             } catch (Exception $e) {
                 logDebug("⚠️ Erreur annonce: " . $e->getMessage());
                 $annonceId = null;
             }
         }
 
-        // 2. User
+        // 2. User - Ne pas écraser les données personnalisées
         $userId = $data['user_id'] ?? null;
 
         if (!$userId) {
@@ -320,14 +200,20 @@ function saveConversation($pdo, $dbName)
 
         logDebug("✅ Conversation $conversationId OK");
 
-        // 4. Messages - compter les nouveaux
+        // 4. Messages - UPSERT avec vrais ID
         $stmtMsg = $pdo->prepare("
             INSERT INTO messages (
                 id, conversation_id, from_me, message_text, 
                 message_date, message_datetime, api_from_user_id, api_status
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE id = id
+            ON DUPLICATE KEY UPDATE 
+                from_me = VALUES(from_me),
+                message_text = VALUES(message_text),
+                message_date = VALUES(message_date),
+                message_datetime = VALUES(message_datetime),
+                api_from_user_id = VALUES(api_from_user_id),
+                api_status = VALUES(api_status)
         ");
 
         $stmtImg = $pdo->prepare("
@@ -344,16 +230,12 @@ function saveConversation($pdo, $dbName)
             $messageId = $msg['id'] ?? null;
 
             if (!$messageId) {
+                logDebug("⚠️ Message sans ID, skip");
                 $skipped++;
                 continue;
             }
 
             $msgDatetime = parseApiDateToDateTime($msg['created_at'] ?? null);
-
-            // Vérifier si nouveau
-            $existsStmt = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE id = ?");
-            $existsStmt->execute([$messageId]);
-            $isNew = $existsStmt->fetchColumn() == 0;
 
             $stmtMsg->execute([
                 $messageId,
@@ -366,13 +248,9 @@ function saveConversation($pdo, $dbName)
                 $msg['status'] ?? null
             ]);
 
-            if ($isNew) {
-                $newMessagesCount++;
-            }
-
             $msgCount++;
 
-            // Images
+            // Images depuis l'API
             if (!empty($msg['medias'])) {
                 foreach ($msg['medias'] as $media) {
                     $fullUrl = $media['versions']['original']['url'] ?? null;
@@ -388,8 +266,10 @@ function saveConversation($pdo, $dbName)
             }
         }
 
-        // 5. Images DOM
+        // 5. Images depuis le scraper DOM (fallback)
         if (!empty($data['images'])) {
+            logDebug("📸 Traitement " . count($data['images']) . " images DOM");
+
             $lastMsgId = $pdo->query("
                 SELECT id FROM messages 
                 WHERE conversation_id = $conversationId 
@@ -397,15 +277,29 @@ function saveConversation($pdo, $dbName)
             ")->fetchColumn();
 
             if ($lastMsgId) {
+                $stmtCheckImg = $pdo->prepare("
+                    SELECT COUNT(*) FROM message_images mi
+                    JOIN messages m ON mi.message_id = m.id
+                    WHERE m.conversation_id = ? AND mi.full_url = ?
+                ");
+
                 foreach ($data['images'] as $img) {
                     $fullUrl = $img['full'] ?? null;
-                    if ($fullUrl) {
+                    if (!$fullUrl) continue;
+
+                    $stmtCheckImg->execute([$conversationId, $fullUrl]);
+                    $exists = $stmtCheckImg->fetchColumn() > 0;
+
+                    if (!$exists) {
                         try {
                             $stmtImg->execute([$lastMsgId, $fullUrl]);
                             $imgCount++;
+                            logDebug("📸 Image ajoutée: $fullUrl");
                         } catch (Exception $e) {
                             // Doublon ignoré
                         }
+                    } else {
+                        logDebug("📸 Image déjà existante, ignorée: $fullUrl");
                     }
                 }
             }
@@ -413,60 +307,26 @@ function saveConversation($pdo, $dbName)
 
         $pdo->commit();
 
-        logDebug("✅ SUCCESS: $msgCount messages ($newMessagesCount nouveaux), $imgCount images");
+        logDebug("✅ SUCCESS: $msgCount messages, $imgCount images" . ($skipped ? ", $skipped skipped" : ""));
         logDebug("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-        // Notification Telegram si nouveaux messages
-        if ($newMessagesCount > 0) {
-            sendTelegramNotification($dbName, $newMessagesCount);
-        }
 
         echo json_encode([
             'status' => 'saved',
             'message' => 'Conversation enregistrée',
             'conversation_id' => $conversationId,
             'messages_count' => $msgCount,
-            'new_messages' => $newMessagesCount,
             'images_count' => $imgCount,
             'skipped' => $skipped
         ]);
     } catch (Exception $e) {
         $pdo->rollBack();
         logDebug("❌ ERREUR: " . $e->getMessage());
+        logDebug("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         echo json_encode(['error' => $e->getMessage()]);
     }
 }
 
-function sendTelegramNotification($dbName, $newCount)
-{
-    try {
-        $configFile = __DIR__ . '/config/users.json';
-        if (!file_exists($configFile)) return;
-
-        $config = json_decode(file_get_contents($configFile), true);
-
-        // Trouver le telegram_chat_id pour cette base
-        $chatId = null;
-        foreach ($config['users'] as $user) {
-            if ($user['db_name'] === $dbName) {
-                $chatId = $user['telegram_chat_id'] ?? null;
-                break;
-            }
-        }
-
-        if (!$chatId) return;
-
-        $notifier = new TelegramNotifier();
-        $notifier->send(
-            $chatId,
-            "🔔 <b>$newCount nouveau(x) message(s)</b>\n\nConsultez votre interface pour les voir."
-        );
-    } catch (Exception $e) {
-        logDebug("⚠️ Erreur notification Telegram: " . $e->getMessage());
-    }
-}
-
-// ========== AUTRES FONCTIONS (identiques à l'original) ==========
+// ========== GET FUNCTIONS ==========
 
 function getStats($pdo)
 {
@@ -490,7 +350,7 @@ function getAnnonces($pdo)
         FROM annonces a
         LEFT JOIN conversations c ON a.id = c.annonce_id
         LEFT JOIN messages m ON c.id = m.conversation_id
-        GROUP BY a.id, a.url, a.title, a.site, a.description, a.is_deleted, a.created_at
+        GROUP BY a.id
         ORDER BY last_message_datetime DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -572,25 +432,34 @@ function getMessages($pdo)
         return;
     }
 
-    $stmt = $pdo->prepare("
-        SELECT m.* FROM messages m
-        WHERE m.conversation_id = ?
-        ORDER BY m.message_datetime ASC
-    ");
-    $stmt->execute([$convId]);
-    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    foreach ($messages as &$msg) {
-        $stmtImg = $pdo->prepare("
-            SELECT id, full_url, local_path
-            FROM message_images
-            WHERE message_id = ?
+    try {
+        $stmt = $pdo->prepare("
+            SELECT m.* FROM messages m
+            WHERE m.conversation_id = ?
+            ORDER BY m.message_datetime ASC
         ");
-        $stmtImg->execute([$msg['id']]);
-        $msg['images'] = $stmtImg->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    }
+        $stmt->execute([$convId]);
+        $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode($messages);
+        if (!is_array($messages)) {
+            $messages = [];
+        }
+
+        foreach ($messages as &$msg) {
+            $stmtImg = $pdo->prepare("
+                SELECT id, full_url, local_path
+                FROM message_images
+                WHERE message_id = ?
+            ");
+            $stmtImg->execute([$msg['id']]);
+            $msg['images'] = $stmtImg->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
+
+        echo json_encode($messages);
+    } catch (Exception $e) {
+        logDebug("❌ getMessages error: " . $e->getMessage());
+        echo json_encode(['error' => $e->getMessage()]);
+    }
 }
 
 function getConversationDetail($pdo)
@@ -613,6 +482,8 @@ function getConversationDetail($pdo)
 
     echo json_encode($detail ?: []);
 }
+
+// ========== UPDATE FUNCTIONS ==========
 
 function updateUserComment($pdo)
 {
@@ -660,6 +531,7 @@ function updateUserField($pdo)
     $value = $data['value'];
     $userId = (int)$data['user_id'];
 
+    // Sécurité: whitelist des champs autorisés
     $allowedFields = ['name', 'phone', 'facebook', 'whatsapp', 'commentaire', 'photo_url'];
 
     if (!in_array($field, $allowedFields)) {

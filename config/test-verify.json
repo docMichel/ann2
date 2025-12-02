@@ -1,0 +1,16 @@
+{
+    "email": "Xdocgemini@gmail.com",
+    "password": "Xrencontres-1234MJ",
+    "timeouts": {
+        "modal": 1500,
+        "input": 200,
+        "submit": 300,
+        "loginSuccess": 5000
+    },
+    "selectors": {
+        "loginModal": "mat-dialog-container annonces-login",
+        "loginEmail": "input[type=\"email\"]",
+        "loginPassword": "input[type=\"password\"]",
+        "loginSubmit": "button[type=\"submit\"]"
+    }
+}

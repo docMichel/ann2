@@ -1,0 +1,15 @@
+=== VERIFY 2025-12-02 05:16:14 ===
+Email: x@t.nc
+Output: {"success": false, "status": "login_failed", "message": "Modal toujours visible apr\u00e8s 5000ms"}
+Return: 1
+
+=== VERIFY 2025-12-02 05:16:40 ===
+Email: docgemini@gmail.com
+Output: {"success": true, "status": "logged_in", "message": "Login r\u00e9ussi"}
+Return: 0
+
+=== VERIFY 2025-12-02 05:36:58 ===
+Email: docgemini@gmail.com
+Output: {"success": true, "status": "logged_in", "message": "Login r\u00e9ussi"}
+Return: 0
+
