@@ -1,0 +1,33 @@
+{
+  "email": "docgemini@gmail.com",
+  "password": "rencontres-1234MJ",
+  "apiUrl": "http://localhost/ann2/api.php?action=save",
+  "maxPages": 5,
+  "maxConversations": 600,
+  "timeouts": {
+    "modal": 1500,
+    "input": 200,
+    "submit": 300,
+    "loginSuccess": 5000,
+    "xhrTimeout": 3000,
+    "annonceModal": 1500,
+    "betweenConvs": 300,
+    "loadMore": 1000,
+    "images": 500
+  },
+  "selectors": {
+    "loginModal": "mat-dialog-container annonces-login",
+    "loginEmail": "input[type=\"email\"]",
+    "loginPassword": "input[type=\"password\"]",
+    "loginSubmit": "button[type=\"submit\"]",
+    "convList": ".conversations__sidebar__content > .clickable",
+    "convTitle": ".text-dark.text-sm",
+    "convUser": ".font-weight-normal.position-relative",
+    "voirPlus": ".conversations__sidebar__content button.rounded-pill",
+    "annonceBtn": "button.btn-primary.ml-2",
+    "annonceDesc": ".mat-dialog-container .card-body .pre-wrap.text-justify",
+    "annonceBadge": ".mat-dialog-container .badge.badge-light.text-sm",
+    "annonceClose": ".mat-dialog-container .text-2x",
+    "images": ".chat-content annonces-image img"
+  }
+}
