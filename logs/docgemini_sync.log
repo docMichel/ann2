@@ -31,11 +31,14 @@ Failed to load resource: the server responded with a status of 401 (Unauthorized
 [LOGIN] 🔍 Recherche modal: mat-dialog-container annonces-login
 [LOGIN] ⚠️  Modal détecté, login en cours...
 [LOGIN] 📝 Remplissage formulaire...
+Failed to load resource: the server responded with a status of 404 (Not Found)
+Failed to load resource: the server responded with a status of 404 (Not Found)
+Failed to load resource: the server responded with a status of 404 (Not Found)
 4
 [LOGIN] 👆 Clic submit...
 [LOGIN] ⏳ Attente disparition modal (5000ms)...
-[.WebGL-0x11c00509e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[.WebGL-0x11c004f6c00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[.WebGL-0x114004fa200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[.WebGL-0x1140050f200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
 5
 6
 7
@@ -84,162 +87,162 @@ Failed to load resource: the server responded with a status of 401 (Unauthorized
 [SCRAPER] 💬 TRAITEMENT 150 CONVERSATIONS
 [SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [SCRAPER] 
-[SCRAPER] [1/150] Kiffe oceaniens - Utilisateur 249852
+[SCRAPER] [1/150] Bi versa chaud - Utilisateur 254364
+[SCRAPER]    📨 25 messages
+[SCRAPER]    📸 3 images
+[SCRAPER]    📄 Annonce 2402492
+[SCRAPER]    ✅ Sauvegardé
+[SCRAPER] 
+[SCRAPER] [2/150] Piscine discrète - Utilisateur 162831
+[SCRAPER]    📨 2 messages
+[SCRAPER]    📄 Annonce 2417205
+[SCRAPER]    ✅ Sauvegardé
+[SCRAPER] 
+[SCRAPER] [3/150] Kiffe oceaniens - Utilisateur 249852
 [SCRAPER]    📨 50 messages
 [SCRAPER]    📸 3 images
 [SCRAPER]    📄 Annonce 2408724
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [2/150] Bi versa chaud - Utilisateur 412563
+[SCRAPER] [4/150] Bi versa chaud - Utilisateur 412563
 [SCRAPER]    📨 5 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [3/150] Piscine discrète - Utilisateur 108187
+[SCRAPER] [5/150] Piscine discrète - Utilisateur 108187
 [SCRAPER]    📨 10 messages
 [SCRAPER]    📸 5 images
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [4/150] Bi versa chaud - Utilisateur 2692
+[SCRAPER] [6/150] Bi versa chaud - Utilisateur 2692
 [SCRAPER]    📨 27 messages
 [SCRAPER]    📸 3 images
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [5/150] Piscine discrète - Utilisateur 378191
+[SCRAPER] [7/150] Piscine discrète - Utilisateur 378191
 [SCRAPER]    📨 1 messages
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [6/150] Bi versa chaud - Utilisateur 312289
+[SCRAPER] [8/150] Bi versa chaud - Utilisateur 312289
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [7/150] Passif discret et BG - Utilisateur 128213
+[SCRAPER] [9/150] Passif discret et BG - Utilisateur 128213
 [SCRAPER]    📨 30 messages
 [SCRAPER]    📸 4 images
 [SCRAPER]    📄 Annonce 1986590
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [8/150] Piscine discrète - Utilisateur 402161
+[SCRAPER] [10/150] Piscine discrète - Utilisateur 402161
 [SCRAPER]    📨 1 messages
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [9/150] Piscine discrète - Utilisateur 7195
+[SCRAPER] [11/150] Piscine discrète - Utilisateur 7195
 [SCRAPER]    📨 5 messages
 [SCRAPER]    📸 3 images
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [10/150] Bi versa chaud - Utilisateur 368436
+[SCRAPER] [12/150] Bi versa chaud - Utilisateur 368436
 [SCRAPER]    📨 2 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [11/150] Bi versa chaud - Utilisateur 270996
+[SCRAPER] [13/150] Bi versa chaud - Utilisateur 270996
 [SCRAPER]    📨 6 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [12/150] Piscine discrète - Utilisateur 270996
+[SCRAPER] [14/150] Piscine discrète - Utilisateur 270996
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [13/150] Piscine discrète - Utilisateur 183527
+[SCRAPER] [15/150] Piscine discrète - Utilisateur 183527
 [SCRAPER]    📨 16 messages
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [14/150] Bi versa chaud - Utilisateur 200845
+[SCRAPER] [16/150] Bi versa chaud - Utilisateur 200845
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [15/150] Bi versa chaud - Utilisateur 212464
+[SCRAPER] [17/150] Bi versa chaud - Utilisateur 212464
 [SCRAPER]    📨 5 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [16/150] Bi versa chaud - Utilisateur 288529
+[SCRAPER] [18/150] Bi versa chaud - Utilisateur 288529
 [SCRAPER]    📨 15 messages
 [SCRAPER]    📸 2 images
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [17/150] Bi versa chaud - Utilisateur 186061
+[SCRAPER] [19/150] Bi versa chaud - Utilisateur 186061
 [SCRAPER]    📨 2 messages
 [SCRAPER]    📸 3 images
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [18/150] Piscine discrète - Utilisateur 162831
-[SCRAPER]    📨 2 messages
-[SCRAPER]    📄 Annonce 2417205
-[SCRAPER]    ✅ Sauvegardé
-[SCRAPER] 
-[SCRAPER] [19/150] Piscine discrète - Utilisateur 26429
+[SCRAPER] [20/150] Piscine discrète - Utilisateur 26429
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📸 2 images
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [20/150] Bi versa chaud - Utilisateur 205712
+[SCRAPER] [21/150] Bi versa chaud - Utilisateur 205712
 [SCRAPER]    📨 9 messages
 [SCRAPER]    📸 2 images
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [21/150] Bi versa chaud - Utilisateur 413550
+[SCRAPER] [22/150] Bi versa chaud - Utilisateur 413550
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [22/150] Piscine discrète - Utilisateur 93325
+[SCRAPER] [23/150] Piscine discrète - Utilisateur 93325
 [SCRAPER]    📨 17 messages
 [SCRAPER]    📸 3 images
 [SCRAPER]    📄 Annonce 2417205
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [23/150] Kiffe oceaniens - Utilisateur 74865
+[SCRAPER] [24/150] Kiffe oceaniens - Utilisateur 74865
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📄 Annonce 2408724
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [24/150] Ki aime se faire sucer le gland 🍆? - Utilisateur 312739
+[SCRAPER] [25/150] Ki aime se faire sucer le gland 🍆? - Utilisateur 312739
 [SCRAPER]    📨 3 messages
 [SCRAPER]    📄 Annonce 2416095
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [25/150] Partouze - Utilisateur 270996
+[SCRAPER] [26/150] Partouze - Utilisateur 270996
 [SCRAPER]    📨 11 messages
 [SCRAPER]    📸 3 images
 [SCRAPER]    📄 Annonce 2134416
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [26/150] Masser te branler et te sucer - Utilisateur 185779
+[SCRAPER] [27/150] Masser te branler et te sucer - Utilisateur 185779
 [SCRAPER]    📨 1 messages
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [27/150] Bi versa chaud - Utilisateur 193387
+[SCRAPER] [28/150] Bi versa chaud - Utilisateur 193387
 [SCRAPER]    📨 5 messages
 [SCRAPER]    📸 2 images
 [SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
-[SCRAPER] [28/150] Kiffe oceaniens - Utilisateur 398322
+[SCRAPER] [29/150] Kiffe oceaniens - Utilisateur 398322
 [SCRAPER]    📨 20 messages
 [SCRAPER]    📸 5 images
 [SCRAPER]    📄 Annonce 2408724
-[SCRAPER]    ✅ Sauvegardé
-[SCRAPER] 
-[SCRAPER] [29/150] Bi versa chaud - Utilisateur 254364
-[SCRAPER]    📨 23 messages
-[SCRAPER]    📸 3 images
-[SCRAPER]    📄 Annonce 2402492
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
 [SCRAPER] [30/150] Kiffe oceaniens - Utilisateur 413307
@@ -359,7 +362,6 @@ Failed to load resource: the server responded with a status of 401 (Unauthorized
 [SCRAPER] 
 [SCRAPER] [52/150] 2  potes - Utilisateur 380260
 [SCRAPER]    📨 1 messages
-[SCRAPER]    📄 Annonce 2417695
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
 [SCRAPER] [53/150] Passif&viril - Utilisateur 295516
@@ -390,6 +392,7 @@ Failed to load resource: the server responded with a status of 401 (Unauthorized
 [SCRAPER] 
 [SCRAPER] [58/150] Rech actif qui assure - Utilisateur 115614
 [SCRAPER]    📨 1 messages
+[SCRAPER]    📄 Annonce 2418011
 [SCRAPER]    ✅ Sauvegardé
 [SCRAPER] 
 [SCRAPER] [59/150] Rebeu passif pour typé actif - Utilisateur 398604
