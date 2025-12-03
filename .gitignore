@@ -4,12 +4,9 @@ logs/
 
 # Locks
 locks/
-*.lock
 
-# Configs temporaires et sensibles
-config/temp_*.json
-config/users.json
-config/pending_users.json
+# Config (entier)
+config/
 
 # Python
 venv/
