@@ -152,6 +152,7 @@ def send_telegram_notification(config, stats):
     """Envoie une notification Telegram de fin de scraping"""
     try:
         import requests
+        import socket
         
         users_config_file = SCRAPER_DIR / 'config' / 'users.json'
         if not users_config_file.exists():
@@ -178,10 +179,12 @@ def send_telegram_notification(config, stats):
             return
         
         # Construire le message
+        hostname = socket.gethostname()
         mode = "COMPLET" if args.full else "SMART"
         stop_reason = stats.get('stop_reason', 'fin normale')
         
         message = f"✅ <b>Scraping {mode} terminé</b>\n\n"
+        message += f"📍 Source: <code>{hostname}</code>\n\n"
         message += f"📊 <b>Résumé:</b>\n"
         message += f"  • Conversations: {stats.get('total', 0)}\n"
         message += f"  • Nouveaux msgs: {stats.get('total_new_messages', 0)}\n"

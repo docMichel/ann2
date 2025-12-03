@@ -358,6 +358,10 @@ function sendTelegramNotification($dbName, $newCount)
 
         if (!$chatId) return;
 
+
+        $hostname = gethostname();
+        $message = "🔔 <b>$newCount nouveau(x) message(s)</b>\n\n";
+        $message .= "📍 Source: <code>$hostname</code>\n";
         $notifier = new TelegramNotifier();
         $notifier->send($chatId, "🔔 <b>$newCount nouveau(x) message(s)</b>\n\nConsultez votre interface.");
     } catch (Exception $e) {
