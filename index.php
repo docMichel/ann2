@@ -186,6 +186,10 @@ $username = explode('@', $user['email'])[0];
                         <span class="badge" id="badge2">0</span>
                     </div>
                     <div class="header-context" id="context2"></div>
+                    <div class="header-description collapsed" id="description2" onclick="toggleDescription()">
+                        <span class="description-text" id="descriptionText2"></span>
+                        <span class="description-toggle">▼</span>
+                    </div>
                 </div>
                 <span class="accordion-arrow">▼</span>
             </div>
@@ -202,6 +206,10 @@ $username = explode('@', $user['email'])[0];
                         <span class="badge" id="badge3">0</span>
                     </div>
                     <div class="header-context" id="context3"></div>
+                    <div class="header-description collapsed" id="description3" onclick="toggleDescription(3)">
+                        <span class="description-text" id="descriptionText3"></span>
+                        <span class="description-toggle">▼</span>
+                    </div>
                 </div>
                 <span class="accordion-arrow">▼</span>
             </div>
@@ -288,10 +296,9 @@ $username = explode('@', $user['email'])[0];
                 return;
             }
 
-            btn.disabled = true;
             btn.classList.add('running');
             btn.textContent = '⏳ En cours...';
-
+            btn.onclick = openLogsModal; // Permet de rouvrir le modal
             try {
                 const res = await fetch('sync.php', {
                     method: 'POST'
@@ -327,9 +334,9 @@ $username = explode('@', $user['email'])[0];
                         clearInterval(interval);
 
                         const btn = document.getElementById('btnSync');
-                        btn.disabled = false;
                         btn.classList.remove('running');
                         btn.textContent = '🔄 Récupérer';
+                        btn.onclick = launchScraper; // Restaurer le comportement normal
 
                         showFlash('✅ Synchronisation terminée');
 

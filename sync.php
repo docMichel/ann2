@@ -18,6 +18,24 @@ $logFile = BASE_PATH . '/logs/' . $username . '_sync.log';
 // Créer les dossiers si nécessaire
 @mkdir(BASE_PATH . '/locks', 0755, true);
 @mkdir(BASE_PATH . '/logs', 0755, true);
+
+// Vider le log au début
+file_put_contents($logFile, '');  // Vider le log
+
+// Logger avec format uniforme
+function logSync($msg)
+{
+    global $logFile;
+    $ts = date('Y-m-d H:i:s');
+    file_put_contents($logFile, "[$ts][PHP] $msg\n", FILE_APPEND);
+}
+
+logSync("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+logSync("DEMANDE DE SCRAPING VIA WEB");
+logSync("User: $username");
+logSync("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+
 // ========== VÉRIFIER SI UN SCRAPER TOURNE DÉJÀ ==========
 
 if (file_exists($lockFile)) {
@@ -33,7 +51,7 @@ if (file_exists($lockFile)) {
             posix_kill($oldPid, SIGKILL);
         }
 
-        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] ⚠️  Ancien scraper (PID: $oldPid) arrêté\n", FILE_APPEND);
+        logsync(" ⚠️  Ancien scraper (PID: $oldPid) arrêté\n", FILE_APPEND);
     }
 
     // Supprimer l'ancien lock
@@ -78,6 +96,7 @@ $scraperConfig = [
 
 $tempConfigFile = BASE_PATH . '/config/temp_' . $username . '.json';
 file_put_contents($tempConfigFile, json_encode($scraperConfig, JSON_PRETTY_PRINT));
+logSync("Config temp créée: $tempConfigFile");
 
 // ========== LANCER LE SCRAPER VIA SCRIPT SHELL ==========
 
@@ -98,10 +117,10 @@ if (!is_executable($launchScript)) {
 }
 
 // Logger le démarrage
-file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", FILE_APPEND);
-file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] 🔵 DEMANDE DE SCRAPING VIA WEB\n", FILE_APPEND);
-file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] User: $username\n", FILE_APPEND);
-file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", FILE_APPEND);
+logsync("[" . date('Y-m-d H:i:s') . "] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", FILE_APPEND);
+logsync("[" . date('Y-m-d H:i:s') . "] 🔵 DEMANDE DE SCRAPING VIA WEB\n", FILE_APPEND);
+logsync("[" . date('Y-m-d H:i:s') . "] User: $username\n", FILE_APPEND);
+logsync("[" . date('Y-m-d H:i:s') . "] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", FILE_APPEND);
 
 // Lancer le script shell
 $cmd = sprintf(

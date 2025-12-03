@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """
 Scraper Annonces.nc - Multi-utilisateurs avec Playwright
-
-MODIFICATIONS:
-- Support --config pour fichier de config custom
-- Envoi du header X-User-Database à l'API
-- Notification Telegram à la fin
+SMART SCRAPING: s'arrête après N conversations sans nouveaux messages
 
 Usage:
-    python3 sync.py --config=config/temp_user1.json
+    python3 sync.py --config=config/temp_user1.json          # Mode smart (défaut)
+    python3 sync.py --config=config/temp_user1.json --full   # Mode complet (600 convs)
     python3 sync.py --config=config/temp_user1.json --headful
     python3 sync.py --config=config/temp_user1.json --firefox
 """
@@ -25,12 +22,12 @@ parser = argparse.ArgumentParser(description='Scraper Annonces.nc')
 parser.add_argument('--config', type=str, help='Fichier de configuration JSON')
 parser.add_argument('--headful', action='store_true', help='Mode visible (debug)')
 parser.add_argument('--firefox', action='store_true', help='Utiliser Firefox')
+parser.add_argument('--full', action='store_true', help='Mode complet (désactive smart stop)')
 args = parser.parse_args()
 
 # ========== CONFIG ==========
 SCRAPER_DIR = Path(__file__).parent
 
-# Utiliser le fichier de config fourni ou le défaut
 if args.config:
     CONFIG_FILE = Path(args.config)
 else:
@@ -40,12 +37,48 @@ LOGIN_JS = SCRAPER_DIR / 'login.js'
 SCRAPER_JS = SCRAPER_DIR / 'scraper.js'
 TARGET_URL = 'https://annonces.nc/dashboard/conversations'
 
+# ========== SMART SCRAPING CONFIG ==========
+SMART_STOP_ENABLED = not args.full
+COLLISION_THRESHOLD = 5  # Arrêter après 5 convs sans nouveaux messages
+CONVS_PER_PAGE = 25  # Nombre de conversations par page sur annonces.nc
+
 # ========== HELPERS ==========
+def get_timestamp():
+    return time.strftime('%Y-%m-%d %H:%M:%S')
+
 def log(msg):
-    print(f'[PYTHON] {msg}')
+    print(f'[{get_timestamp()}][PY] {msg}', flush=True)
 
 def error(msg):
-    print(f'[PYTHON] ❌ {msg}', file=sys.stderr)
+    print(f'[{get_timestamp()}][PY] ❌ {msg}', file=sys.stderr, flush=True)
+
+def check_database_empty(config):
+    """Vérifie si la base est vide en interrogeant l'API"""
+    try:
+        import requests
+        
+        # Construire l'URL stats
+        api_base = config['apiUrl'].replace('?action=save', '?action=stats')
+        db_name = config.get('db_name', 'annonces_messages_default')
+        
+        # Appeler l'API stats (nécessite auth, donc on utilise le header)
+        # Note: l'action stats nécessite auth, on va plutôt compter sur le fichier config
+        # Alternative: faire une requête simple
+        
+        response = requests.get(api_base, headers={'X-User-Database': db_name}, timeout=5)
+        
+        if response.status_code == 200:
+            stats = response.json()
+            msg_count = stats.get('messages', 0)
+            log(f'📊 Base actuelle: {msg_count} messages')
+            return msg_count == 0
+        else:
+            log(f'⚠️  Impossible de vérifier la base (status {response.status_code})')
+            return False  # Par défaut, mode smart
+            
+    except Exception as e:
+        log(f'⚠️  Erreur vérification base: {e}')
+        return False  # Par défaut, mode smart
 
 def load_config():
     """Charge la config depuis JSON"""
@@ -59,6 +92,40 @@ def load_config():
     if not config.get('email') or not config.get('password'):
         error('Credentials manquants dans config')
         sys.exit(1)
+    
+    # Extraire db_name pour la vérification
+    db_name = config.get('db_name')
+    if not db_name and args.config:
+        username = Path(args.config).stem.replace('temp_', '')
+        db_name = f'annonces_messages_{username}'
+        config['db_name'] = db_name
+    
+    # Décider du mode : --full explicite OU base vide
+    force_full = args.full
+    
+    if not force_full:
+        # Vérifier si la base est vide
+        is_empty = check_database_empty(config)
+        if is_empty:
+            log('🆕 Base vide détectée → MODE FULL automatique')
+            force_full = True
+    
+    # Ajouter config smart scraping
+    config['smartStop'] = not force_full
+    config['collisionThreshold'] = COLLISION_THRESHOLD
+    
+    # Calculer maxPages automatiquement selon le mode
+    if force_full:
+        # Mode full : calculer le nombre de clics "Voir plus" nécessaires
+        max_convs = config.get('maxConversations', 600)
+        config['maxPages'] = max(1, (max_convs // CONVS_PER_PAGE))  # 600/25 = 24 pages
+        config['maxConversations'] = max_convs
+        log(f'🔄 MODE FULL: {config["maxPages"]} pages pour {max_convs} conversations')
+    else:
+        # Mode smart : quelques pages suffisent (on s'arrête aux collisions)
+        config['maxPages'] = config.get('maxPages', 5)  # 5 pages = 125 convs max
+        config['maxConversations'] = config.get('maxConversations', 200)
+        log(f'🧠 MODE SMART: max {config["maxPages"]} pages ({config["maxPages"] * CONVS_PER_PAGE} convs), arrêt après {COLLISION_THRESHOLD} collisions')
     
     return config
 
@@ -81,12 +148,6 @@ def inject_config(page, config):
         console.log('[PYTHON] Config injectée dans localStorage');
     """)
 
-def extract_db_name_from_api_url(api_url):
-    """Extrait le nom de base depuis l'URL de l'API"""
-    # L'API devrait contenir le nom de base dans le path ou en paramètre
-    # Par défaut on essaie de le déduire du fichier de config
-    return None
-
 def send_telegram_notification(config, stats):
     """Envoie une notification Telegram de fin de scraping"""
     try:
@@ -99,27 +160,34 @@ def send_telegram_notification(config, stats):
         with open(users_config_file) as f:
             users_config = json.load(f)
         
-        if not users_config.get('telegram', {}).get('enabled'):
+        bot_token = users_config.get('telegram_bot_token')
+        if not bot_token:
             return
-        
-        bot_token = users_config['telegram']['bot_token']
         
         # Trouver le chat_id de l'utilisateur correspondant
         chat_id = None
-        for user in users_config['users']:
-            if user['annonces_email'] == config['email']:
+        for user in users_config.get('users', []):
+            if user.get('email') == config['email'] or user.get('annonces_email') == config['email']:
                 chat_id = user.get('telegram_chat_id')
                 break
         
-        if not chat_id or not bot_token:
+        if not chat_id:
+            chat_id = users_config.get('admin_telegram_chat_id')
+        
+        if not chat_id:
             return
         
         # Construire le message
-        message = f"✅ <b>Scraping terminé</b>\n\n"
+        mode = "COMPLET" if args.full else "SMART"
+        stop_reason = stats.get('stop_reason', 'fin normale')
+        
+        message = f"✅ <b>Scraping {mode} terminé</b>\n\n"
         message += f"📊 <b>Résumé:</b>\n"
-        message += f"  • Total: {stats['total']} conversations\n"
-        message += f"  • Succès: {stats['succeeded']}\n"
-        message += f"  • Échecs: {stats['failed']}\n"
+        message += f"  • Conversations: {stats.get('total', 0)}\n"
+        message += f"  • Nouveaux msgs: {stats.get('total_new_messages', 0)}\n"
+        message += f"  • Succès: {stats.get('succeeded', 0)}\n"
+        message += f"  • Échecs: {stats.get('failed', 0)}\n"
+        message += f"  • Arrêt: {stop_reason}\n"
         message += f"\n⏰ {time.strftime('%d/%m/%Y à %H:%M')}"
         
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -137,25 +205,23 @@ def send_telegram_notification(config, stats):
 
 # ========== MAIN ==========
 def run_scraper(headless=True, browser_type='chromium'):
-    """
-    Lance le scraper en 2 étapes : login puis scraping
-    """
+    """Lance le scraper en 2 étapes : login puis scraping"""
     
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     log('🚀 SCRAPER ANNONCES.NC - PYTHON LAUNCHER')
     log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     
-    # 1. Charger config et scripts
     log('📋 Chargement configuration...')
     config = load_config()
     log(f'   Email: {config["email"]}')
     log(f'   API: {config["apiUrl"]}')
     log(f'   Max conversations: {config["maxConversations"]}')
+    log(f'   Smart stop: {config["smartStop"]}')
+    if config["smartStop"]:
+        log(f'   Collision threshold: {config["collisionThreshold"]}')
     
-    # Extraire le nom de base pour le header
     db_name = config.get('db_name')
     if not db_name:
-        # Essayer de le déduire du nom de fichier config
         if args.config:
             username = Path(args.config).stem.replace('temp_', '')
             db_name = f'annonces_messages_{username}'
@@ -174,40 +240,43 @@ def run_scraper(headless=True, browser_type='chromium'):
         f"headers: {{ 'Content-Type': 'application/json', 'X-User-Database': '{db_name}' }}"
     )
     
-    # 2. Lancer navigateur
     mode = 'HEADLESS' if headless else 'HEADFUL'
     log(f'🌐 Lancement {browser_type.upper()} ({mode})...')
     
     with sync_playwright() as p:
-        # Choisir le navigateur
         if browser_type == 'firefox':
             browser = p.firefox.launch(headless=headless)
         else:
             browser = p.chromium.launch(
                 headless=headless,
-                args=[
-                    '--disable-web-security',
-                    '--disable-features=IsolateOrigins,site-per-process'
-                ]
+                args=['--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
             )
         
         context = browser.new_context(
             viewport={'width': 1920, 'height': 1080},
-            user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+            user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+            storage_state=None
         )
         page = context.new_page()
         
-        # LISTENER CONSOLE
-        page.on("console", lambda msg: print(msg.text))
+        def on_console(msg):
+            ts = time.strftime('%Y-%m-%d %H:%M:%S')
+            text = msg.text
+            if text.startswith('[2'):
+                print(text, flush=True)
+            elif text.startswith('[LOGIN]') or text.startswith('[SCRAPER]') or text.startswith('[PYTHON]'):
+                print(f'[{ts}]{text}', flush=True)
+            else:
+                print(f'[{ts}][JS] {text}', flush=True)
+
+        page.on("console", on_console)
         
         try:
-            # 3. Navigation
             log(f'🔗 Navigation vers {TARGET_URL}...')
             page.goto(TARGET_URL, wait_until='domcontentloaded', timeout=30000)
             log('✅ Page chargée')
             time.sleep(2)
             
-            # 4. Injecter config
             log('💉 Injection config dans localStorage...')
             inject_config(page, config)
             
@@ -221,12 +290,9 @@ def run_scraper(headless=True, browser_type='chromium'):
             
             if not login_result.get('success'):
                 error(f'Échec login: {login_result.get("message")}')
-                
                 if headless:
                     screenshot_path = SCRAPER_DIR / f'error-login-{db_name}.png'
                     page.screenshot(path=str(screenshot_path))
-                    log(f'📸 Screenshot sauvegardé: {screenshot_path}')
-                
                 return False
             
             log(f'✅ Login: {login_result.get("message")}')
@@ -249,12 +315,9 @@ def run_scraper(headless=True, browser_type='chromium'):
             
             if not scraper_result.get('success'):
                 error(f'Échec scraping: {scraper_result.get("error")}')
-                
                 if headless:
                     screenshot_path = SCRAPER_DIR / f'error-scraper-{db_name}.png'
                     page.screenshot(path=str(screenshot_path))
-                    log(f'📸 Screenshot sauvegardé: {screenshot_path}')
-                
                 return False
             
             log('')
@@ -262,10 +325,11 @@ def run_scraper(headless=True, browser_type='chromium'):
             log('✨ RÉSUMÉ')
             log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
             log(f'Total conversations: {scraper_result.get("total", 0)}')
+            log(f'Nouveaux messages: {scraper_result.get("total_new_messages", 0)}')
             log(f'Succès: {scraper_result.get("succeeded", 0)}')
             log(f'Échecs: {scraper_result.get("failed", 0)}')
+            log(f'Arrêt: {scraper_result.get("stop_reason", "fin normale")}')
             
-            # Notification Telegram
             send_telegram_notification(config, scraper_result)
             
             return True
@@ -297,7 +361,6 @@ if __name__ == '__main__':
     
     success = run_scraper(headless=headless, browser_type=browser_type)
     
-    # Cleanup du fichier de config temporaire
     if args.config and Path(args.config).stem.startswith('temp_'):
         try:
             Path(args.config).unlink()

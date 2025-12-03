@@ -3,8 +3,8 @@
     "password": "rencontres-1234MJ",
     "db_name": "annonces_messages_docgemini",
     "apiUrl": "http:\/\/localhost\/ann2\/api.php?action=save",
-    "maxPages": 5,
-    "maxConversations": 600,
+    "maxPages": 2,
+    "maxConversations": 4,
     "timeouts": {
         "modal": 1500,
         "input": 200,

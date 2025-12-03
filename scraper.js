@@ -1,10 +1,10 @@
 /**
- * SCRAPER - Assume déjà connecté
+ * SCRAPER - Smart Scraping
+ * S'arrête après N conversations consécutives sans nouveaux messages
  */
 (async function () {
     'use strict';
 
-    // ========== LOGGER ==========
     const S = {
         log: (msg) => console.log('[SCRAPER]', msg),
         error: (msg) => console.error('[SCRAPER]', msg),
@@ -32,21 +32,30 @@
         return { success: false, error: 'invalid_config' };
     }
 
+    // Smart stop config
+    const SMART_STOP = CONFIG.smartStop !== false;
+    const COLLISION_THRESHOLD = CONFIG.collisionThreshold || 5;
+
     S.log('✅ Config chargée');
     S.log('API: ' + CONFIG.apiUrl);
     S.log('Max pages: ' + CONFIG.maxPages);
     S.log('Max conversations: ' + CONFIG.maxConversations);
+    S.log('Smart stop: ' + (SMART_STOP ? 'OUI (seuil=' + COLLISION_THRESHOLD + ')' : 'NON'));
     S.log('');
+
+    // ========== SMART STOP VARIABLES ==========
+    let consecutiveCollisions = 0;
+    let totalNewMessages = 0;
+    let shouldStop = false;
+    let stopReason = 'fin normale';
 
     // ========== VÉRIFIER QU'ON A DES CONVERSATIONS ==========
     S.log('🔍 Vérification présence conversations...');
     S.log('   Sélecteur: ' + CONFIG.selectors.convList);
 
-    await wait(2000); // Attendre que la page soit stable
+    await wait(2000);
 
     let initialConvs = document.querySelectorAll(CONFIG.selectors.convList);
-
-    // Si pas de conversations, attendre un peu plus (max 10s)
     let attempts = 0;
     while (initialConvs.length === 0 && attempts < 50) {
         await wait(200);
@@ -56,9 +65,6 @@
 
     if (initialConvs.length === 0) {
         S.error('❌ Aucune conversation trouvée !');
-        S.error('   URL actuelle: ' + window.location.href);
-        S.error('   Sélecteur utilisé: ' + CONFIG.selectors.convList);
-        S.error('   Êtes-vous bien connecté et sur /dashboard/conversations ?');
         return { success: false, error: 'no_conversations' };
     }
 
@@ -104,10 +110,7 @@
         document.querySelectorAll(CONFIG.selectors.images).forEach(img => {
             const src = img.getAttribute('src');
             if (src) {
-                images.push({
-                    thumbnail: src,
-                    full: src.replace('/tiny_', '/')
-                });
+                images.push({ thumbnail: src, full: src.replace('/tiny_', '/') });
             }
         });
         return images;
@@ -151,7 +154,7 @@
             try {
                 return JSON.parse(text);
             } catch (e) {
-                return { raw: text };
+                return { raw: text, new_messages: 0 };
             }
         } catch (error) {
             S.error('Erreur API: ' + error);
@@ -210,7 +213,15 @@
     S.log('');
 
     // ========== BOUCLE CONVERSATIONS ==========
+    let processed = 0;
+
     for (let i = 0; i < totalToProcess; i++) {
+        // Vérifier arrêt smart
+        if (shouldStop) {
+            S.log('🛑 Arrêt smart: ' + stopReason);
+            break;
+        }
+
         try {
             xhrData.conversationId = null;
             xhrData.messages = null;
@@ -261,11 +272,7 @@
             const payload = {
                 conversation_id: xhrData.conversationId,
                 user_id: userId,
-                info: {
-                    title: title,
-                    user: userName,
-                    site: 'annonces.nc'
-                },
+                info: { title: title, user: userName, site: 'annonces.nc' },
                 messages: xhrData.messages,
                 images: images,
                 annonce_id: annonceData?.id,
@@ -274,17 +281,31 @@
             };
 
             const result = await sendToAPI(payload);
+            processed++;
 
-            if (result?.status === 'saved') {
-                S.log('   ✅ Sauvegardé');
-            } else if (result?.status === 'exists') {
-                S.log('   ⏭️  Existe déjà');
+            if (result?.status === 'saved' || result?.success) {
+                const newMsgs = result.new_messages || 0;
+                totalNewMessages += newMsgs;
+
+                if (newMsgs > 0) {
+                    S.log('   ✅ Sauvegardé (' + newMsgs + ' nouveaux)');
+                    consecutiveCollisions = 0; // Reset collisions
+                } else {
+                    consecutiveCollisions++;
+                    S.log('   ⏭️  Aucun nouveau (collision ' + consecutiveCollisions + '/' + COLLISION_THRESHOLD + ')');
+
+                    // Vérifier seuil smart stop
+                    if (SMART_STOP && consecutiveCollisions >= COLLISION_THRESHOLD) {
+                        shouldStop = true;
+                        stopReason = COLLISION_THRESHOLD + ' collisions consécutives';
+                    }
+                }
             } else {
                 S.log('   ❌ Échec API');
             }
             S.log('');
 
-            results.push({ success: !!result, response: result });
+            results.push({ success: !!result, response: result, new_messages: result?.new_messages || 0 });
             await wait(CONFIG.timeouts.betweenConvs);
 
         } catch (error) {
@@ -298,14 +319,19 @@
     S.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     S.log('✨ TERMINÉ');
     S.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    S.log('Succès: ' + results.filter(r => r.success).length + '/' + totalToProcess);
+    S.log('Conversations traitées: ' + processed + '/' + totalToProcess);
+    S.log('Nouveaux messages: ' + totalNewMessages);
+    S.log('Succès: ' + results.filter(r => r.success).length);
     S.log('Échecs: ' + results.filter(r => !r.success).length);
+    S.log('Arrêt: ' + stopReason);
 
     return {
         success: true,
-        total: totalToProcess,
+        total: processed,
+        total_new_messages: totalNewMessages,
         succeeded: results.filter(r => r.success).length,
         failed: results.filter(r => !r.success).length,
+        stop_reason: stopReason,
         results: results
     };
 

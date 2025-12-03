@@ -16,13 +16,12 @@ class TelegramNotifier
 
         if (file_exists($configFile)) {
             $config = json_decode(file_get_contents($configFile), true);
-            $this->botToken = $config['telegram']['bot_token'] ?? null;
-            $this->enabled = $config['telegram']['enabled'] ?? false;
+            $this->botToken = $config['telegram_bot_token'] ?? null;
+            $this->enabled = !empty($this->botToken);
         } else {
             $this->enabled = false;
         }
     }
-
     /**
      * Envoyer une notification
      */

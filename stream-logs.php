@@ -15,6 +15,9 @@ $user = Auth::getCurrentUser();
 $username = explode('@', $user['email'])[0];
 $logFile = BASE_PATH . '/logs/' . $username . '_sync.log';
 
+// Libérer le verrou de session
+session_write_close();
+
 // Headers SSE
 header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
@@ -65,7 +68,7 @@ if (!file_exists($logFile)) {
 
     // Attendre max 10s que le log apparaisse
     for ($i = 0; $i < 20; $i++) {
-        usleep(500000); // 500ms
+        usleep(100000); // 500ms
         if (file_exists($logFile)) {
             break;
         }
@@ -133,7 +136,7 @@ while (true) {
         sendEvent('heartbeat', ['timestamp' => time()]);
     }
 
-    usleep(500000); // 500ms
+    usleep(100000); // 500ms
 }
 
 sendEvent('close', ['message' => 'Stream fermé']);
