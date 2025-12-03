@@ -1,0 +1,52 @@
+# Logs
+logs/
+*.log
+
+# Locks
+locks/
+*.lock
+
+# Configs temporaires et sensibles
+config/temp_*.json
+config/users.json
+config/pending_users.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+
+# Playwright
+.playwright/
+
+# Screenshots d'erreur
+error-*.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Node (au cas où)
+node_modules/
+package-lock.json
+
+# Fichiers de test
+test-*.json
+Xtemp_*.json
+Ytemp_*.json
