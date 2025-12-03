@@ -1,12 +1,16 @@
-# Logs
-logs/
+# Logs - ignore tout sauf .gitkeep
+logs/*
+!logs/.gitkeep
 *.log
 
-# Locks
-locks/
+# Locks - ignore tout sauf .gitkeep
+locks/*
+!locks/.gitkeep
 
-# Config (entier)
-config/
+# Config - ignore tout sauf les .example et .gitkeep
+config/*
+!config/*.example
+!config/.gitkeep
 
 # Python
 venv/
@@ -37,7 +41,6 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
-*~
 
 # Node (au cas où)
 node_modules/
