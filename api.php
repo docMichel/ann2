@@ -222,10 +222,9 @@ function saveConversation($pdo, $dbName)
 
         logDebug("👤 Traitement user ID: $userId");
         $stmt = $pdo->prepare("
-            INSERT INTO users (user_id, user_name) 
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE user_name = VALUES(user_name)
-        ");
+                INSERT IGNORE INTO users (user_id, user_name) 
+                VALUES (?, ?)
+            ");
         $stmt->execute([$userId, $data['info']['user'] ?? "Utilisateur $userId"]);
         logDebug("✅ User $userId OK");
 
