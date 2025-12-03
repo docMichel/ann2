@@ -54,12 +54,14 @@ if ($needsAuth) {
 
 $dbName = null;
 
-if ($action === 'save') {
+if ($action === 'save' || isset($_SERVER['HTTP_X_USER_DATABASE'])) {
+    // Action avec header = scraper ou API externe
     $dbName = $_SERVER['HTTP_X_USER_DATABASE'] ?? null;
     if (!$dbName) {
         jsonError('Header X-User-Database manquant', 400);
     }
 } else {
+    // Action normale via interface web
     require_once __DIR__ . '/auth/auth.php';
     $user = Auth::getCurrentUser();
     $dbName = $user['db_name'];

@@ -1,0 +1,25 @@
+[2025-12-03 20:37:43] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:43] 🔵 CRÉATION BASE: annonces_messages_docgemini
+[2025-12-03 20:37:43] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:43] ➕ Création nouvelle base...
+[2025-12-03 20:37:43] ✓ Base sélectionnée
+[2025-12-03 20:37:43] ✓ Schema chargé
+[2025-12-03 20:37:43] ✓ 11 statements parsés
+[2025-12-03 20:37:43]   ✓ Statement #0 OK
+[2025-12-03 20:37:43]   ✓ Statement #1 OK
+[2025-12-03 20:37:43]   ✓ Statement #2 OK
+[2025-12-03 20:37:43]   ✓ Statement #3 OK
+[2025-12-03 20:37:43]   ✓ Statement #4 OK
+[2025-12-03 20:37:43]   ✓ Statement #5 OK
+[2025-12-03 20:37:43]   ✓ Statement #6 OK
+[2025-12-03 20:37:43]   ✓ Statement #7 OK
+[2025-12-03 20:37:43]   ✓ Statement #8 OK
+[2025-12-03 20:37:43]   ✓ Statement #9 OK
+[2025-12-03 20:37:43]   ⚠ Statement #10: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE
+AFTER
+    description' at line 4
+[2025-12-03 20:37:43] 
+[2025-12-03 20:37:43] ✅ TERMINÉ
+[2025-12-03 20:37:43]    Success: 10
+[2025-12-03 20:37:43]    Skipped: 0
+[2025-12-03 20:37:43] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

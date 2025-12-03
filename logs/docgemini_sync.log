@@ -1,179 +1,178 @@
-[2025-12-03 19:23:40][PHP] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:40][PHP] DEMANDE DE SCRAPING VIA WEB
-[2025-12-03 19:23:40][PHP] User: docgemini
-[2025-12-03 19:23:40][PHP] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:40][PHP] Config temp créée: /Users/mj/Sites/ann2/config/temp_docgemini.json
-[2025-12-03 19:23:40][PHP] [2025-12-03 19:23:40] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:48][PHP] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:48][PHP] DEMANDE DE SCRAPING VIA WEB
+[2025-12-03 20:37:48][PHP] User: docgemini
+[2025-12-03 20:37:48][PHP] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:48][PHP] Config temp créée: /Users/mj/Sites/ann2/config/temp_docgemini.json
+[2025-12-03 20:37:48][PHP] [2025-12-03 20:37:48] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[2025-12-03 19:23:40][PHP] [2025-12-03 19:23:40] 🔵 DEMANDE DE SCRAPING VIA WEB
+[2025-12-03 20:37:48][PHP] [2025-12-03 20:37:48] 🔵 DEMANDE DE SCRAPING VIA WEB
 
-[2025-12-03 19:23:40][PHP] [2025-12-03 19:23:40] User: docgemini
+[2025-12-03 20:37:48][PHP] [2025-12-03 20:37:48] User: docgemini
 
-[2025-12-03 19:23:40][PHP] [2025-12-03 19:23:40] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:48][PHP] [2025-12-03 20:37:48] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[2025-12-03 19:23:40][BASH] Python: /Users/mj/Sites/ann2/venv/bin/python
-[2025-12-03 19:23:40][BASH] Dependencies OK
-[2025-12-03 19:23:40][BASH] Lancement scraper...
-[2025-12-03 19:23:40][BASH] Scraper PID: 85411
-[2025-12-03 19:23:40][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:40][PY] 🚀 SCRAPER ANNONCES.NC - PYTHON LAUNCHER
-[2025-12-03 19:23:40][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:40][PY] 📋 Chargement configuration...
-[2025-12-03 19:23:40][PY] ⚠️  Impossible de vérifier la base (status 500)
-[2025-12-03 19:23:40][PY] 🧠 MODE SMART: max 5 pages (125 convs), arrêt après 5 collisions
-[2025-12-03 19:23:40][PY]    Email: docgemini@gmail.com
-[2025-12-03 19:23:40][PY]    API: http://localhost/ann2/api.php?action=save
-[2025-12-03 19:23:40][PY]    Max conversations: 600
-[2025-12-03 19:23:40][PY]    Smart stop: True
-[2025-12-03 19:23:40][PY]    Collision threshold: 5
-[2025-12-03 19:23:40][PY]    Database: annonces_messages_docgemini
-[2025-12-03 19:23:40][PY] 📜 Chargement scripts JS...
-[2025-12-03 19:23:40][PY] 🌐 Lancement CHROMIUM (HEADLESS)...
-[2025-12-03 19:23:41][PY] 🔗 Navigation vers https://annonces.nc/dashboard/conversations...
-[2025-12-03 19:23:42][BASH] Process running
-[2025-12-03 19:23:42][JS] tarteaucitron script loaded
-[2025-12-03 19:23:43][PY] ✅ Page chargée
-[2025-12-03 19:23:45][PY] 💉 Injection config dans localStorage...
-[2025-12-03 19:23:45][JS] Failed to load resource: the server responded with a status of 401 (Unauthorized)
-[2025-12-03 19:23:45][JS] Failed to load resource: the server responded with a status of 401 (Unauthorized)
-[2025-12-03 19:23:45][JS] 1
-[2025-12-03 19:23:45][JS] 2
-[2025-12-03 19:23:45][PYTHON] Config injectée dans localStorage
-[2025-12-03 19:23:45][PY] 
-[2025-12-03 19:23:45][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:45][PY] 🔐 ÉTAPE 1/2 : LOGIN
-[2025-12-03 19:23:45][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:45][LOGIN] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:45][LOGIN] 🔐 LOGIN ANNONCES.NC
-[2025-12-03 19:23:45][LOGIN] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:45][LOGIN] Config OK
-[2025-12-03 19:23:45][LOGIN] Email: docgemini@gmail.com
-[2025-12-03 19:23:45][LOGIN] ⏳ Attente modal (1500ms)...
-[2025-12-03 19:23:45][JS] 3
-[2025-12-03 19:23:46][LOGIN] 🔍 Recherche modal: mat-dialog-container annonces-login
-[2025-12-03 19:23:46][LOGIN] ⚠️  Modal détecté, login en cours...
-[2025-12-03 19:23:46][LOGIN] 📝 Remplissage formulaire...
-[2025-12-03 19:23:46][JS] 4
-[2025-12-03 19:23:47][LOGIN] 👆 Clic submit...
-[2025-12-03 19:23:47][LOGIN] ⏳ Attente disparition modal (5000ms)...
-[2025-12-03 19:23:47][JS] [.WebGL-0x1340050aa00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[2025-12-03 19:23:47][JS] [.WebGL-0x134004fa200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[2025-12-03 19:23:47][JS] 5
-[2025-12-03 19:23:48][JS] 6
-[2025-12-03 19:23:49][JS] 7
-[2025-12-03 19:23:50][JS] 8
-[2025-12-03 19:23:51][JS] 9
-[2025-12-03 19:23:52][LOGIN] ✅✅✅ Login réussi !
-[2025-12-03 19:23:52][LOGIN] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:52][PY] ✅ Login: Login réussi
-[2025-12-03 19:23:52][PY] ⏳ Attente stabilisation après login (5s)...
-[2025-12-03 19:23:57][PY] 💉 Ré-injection config...
-[2025-12-03 19:23:57][JS] 10
-[2025-12-03 19:23:57][PYTHON] Config injectée dans localStorage
-[2025-12-03 19:23:57][PY] 
-[2025-12-03 19:23:57][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:57][PY] 📊 ÉTAPE 2/2 : SCRAPING
-[2025-12-03 19:23:57][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:57][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:57][SCRAPER] 🚀 SCRAPER ANNONCES.NC
-[2025-12-03 19:23:57][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:57][SCRAPER] ✅ Config chargée
-[2025-12-03 19:23:57][SCRAPER] API: http://localhost/ann2/api.php?action=save
-[2025-12-03 19:23:57][SCRAPER] Max pages: 5
-[2025-12-03 19:23:57][SCRAPER] Max conversations: 600
-[2025-12-03 19:23:57][SCRAPER] Smart stop: OUI (seuil=5)
-[2025-12-03 19:23:57][SCRAPER] 
-[2025-12-03 19:23:57][SCRAPER] 🔍 Vérification présence conversations...
-[2025-12-03 19:23:57][SCRAPER]    Sélecteur: .conversations__sidebar__content > .clickable
-[2025-12-03 19:23:59][SCRAPER] ✅ 25 conversations détectées
-[2025-12-03 19:23:59][SCRAPER] 
-[2025-12-03 19:23:59][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:59][SCRAPER] 📋 CHARGEMENT CONVERSATIONS
-[2025-12-03 19:23:59][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:23:59][SCRAPER] Conversations chargées: 25
-[2025-12-03 19:23:59][SCRAPER] 📄 Chargement page 1/5
-[2025-12-03 19:24:00][SCRAPER] Conversations chargées: 50
-[2025-12-03 19:24:00][SCRAPER] 📄 Chargement page 2/5
-[2025-12-03 19:24:01][SCRAPER] Conversations chargées: 75
-[2025-12-03 19:24:01][SCRAPER] 📄 Chargement page 3/5
-[2025-12-03 19:24:02][SCRAPER] Conversations chargées: 100
-[2025-12-03 19:24:02][SCRAPER] 📄 Chargement page 4/5
-[2025-12-03 19:24:03][SCRAPER] Conversations chargées: 125
-[2025-12-03 19:24:03][SCRAPER] 📄 Chargement page 5/5
-[2025-12-03 19:24:04][SCRAPER] 
-[2025-12-03 19:24:04][SCRAPER] ✅ 5 pages chargées
-[2025-12-03 19:24:04][SCRAPER] 
-[2025-12-03 19:24:04][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:24:04][SCRAPER] 💬 TRAITEMENT 150 CONVERSATIONS
-[2025-12-03 19:24:04][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:24:04][SCRAPER] 
-[2025-12-03 19:24:04][SCRAPER] [1/150] Bi versa chaud - Utilisateur 193387
-[2025-12-03 19:24:04][SCRAPER]    📨 16 messages
-[2025-12-03 19:24:05][SCRAPER]    📸 3 images
-[2025-12-03 19:24:07][SCRAPER]    📄 Annonce 2402492
-[2025-12-03 19:24:07][SCRAPER]    ✅ Sauvegardé (1 nouveaux)
-[2025-12-03 19:24:07][SCRAPER] 
-[2025-12-03 19:24:07][SCRAPER] [2/150] Bi versa chaud - Utilisateur 205712
-[2025-12-03 19:24:08][SCRAPER]    📨 10 messages
-[2025-12-03 19:24:08][SCRAPER]    📸 2 images
-[2025-12-03 19:24:10][SCRAPER]    📄 Annonce 2402492
-[2025-12-03 19:24:10][SCRAPER]    ✅ Sauvegardé (1 nouveaux)
-[2025-12-03 19:24:10][SCRAPER] 
-[2025-12-03 19:24:10][SCRAPER] [3/150] Bi versa chaud - Utilisateur 186061
-[2025-12-03 19:24:11][SCRAPER]    📨 3 messages
-[2025-12-03 19:24:12][SCRAPER]    📸 3 images
-[2025-12-03 19:24:14][SCRAPER]    📄 Annonce 2402492
-[2025-12-03 19:24:14][SCRAPER]    ✅ Sauvegardé (1 nouveaux)
-[2025-12-03 19:24:14][SCRAPER] 
-[2025-12-03 19:24:14][SCRAPER] [4/150] Bi versa chaud - Utilisateur 200845
-[2025-12-03 19:24:14][SCRAPER]    📨 4 messages
-[2025-12-03 19:24:17][SCRAPER]    📄 Annonce 2402492
-[2025-12-03 19:24:17][SCRAPER]    ✅ Sauvegardé (1 nouveaux)
-[2025-12-03 19:24:17][SCRAPER] 
-[2025-12-03 19:24:17][SCRAPER] [5/150] Bi versa chaud - Utilisateur 368436
-[2025-12-03 19:24:18][SCRAPER]    📨 3 messages
-[2025-12-03 19:24:20][SCRAPER]    📄 Annonce 2402492
-[2025-12-03 19:24:20][SCRAPER]    ⏭️  Aucun nouveau (collision 1/5)
-[2025-12-03 19:24:20][SCRAPER] 
-[2025-12-03 19:24:21][SCRAPER] [6/150] Passif.  Chaud  déplace - Utilisateur 407658
-[2025-12-03 19:24:21][SCRAPER]    📨 3 messages
-[2025-12-03 19:24:24][SCRAPER]    📄 Annonce 2421231
-[2025-12-03 19:24:24][SCRAPER]    ⏭️  Aucun nouveau (collision 2/5)
-[2025-12-03 19:24:24][SCRAPER] 
-[2025-12-03 19:24:24][SCRAPER] [7/150] Piscine discrète - Utilisateur 387025
-[2025-12-03 19:24:24][SCRAPER]    📨 3 messages
-[2025-12-03 19:24:27][SCRAPER]    📄 Annonce 2417205
-[2025-12-03 19:24:27][SCRAPER]    ⏭️  Aucun nouveau (collision 3/5)
-[2025-12-03 19:24:27][SCRAPER] 
-[2025-12-03 19:24:27][SCRAPER] [8/150] Passif discret et BG - Utilisateur 128213
-[2025-12-03 19:24:27][SCRAPER]    📨 31 messages
-[2025-12-03 19:24:28][SCRAPER]    📸 4 images
-[2025-12-03 19:24:30][SCRAPER]    📄 Annonce 1986590
-[2025-12-03 19:24:30][SCRAPER]    ⏭️  Aucun nouveau (collision 4/5)
-[2025-12-03 19:24:30][SCRAPER] 
-[2025-12-03 19:24:30][SCRAPER] [9/150] Bi versa chaud - Utilisateur 2692
-[2025-12-03 19:24:31][SCRAPER]    📨 30 messages
-[2025-12-03 19:24:31][SCRAPER]    📸 3 images
-[2025-12-03 19:24:33][SCRAPER]    📄 Annonce 2402492
-[2025-12-03 19:24:33][SCRAPER]    ⏭️  Aucun nouveau (collision 5/5)
-[2025-12-03 19:24:33][SCRAPER] 
-[2025-12-03 19:24:34][SCRAPER] 🛑 Arrêt smart: 5 collisions consécutives
-[2025-12-03 19:24:34][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:24:34][SCRAPER] ✨ TERMINÉ
-[2025-12-03 19:24:34][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:24:34][SCRAPER] Conversations traitées: 9/150
-[2025-12-03 19:24:34][SCRAPER] Nouveaux messages: 4
-[2025-12-03 19:24:34][SCRAPER] Succès: 9
-[2025-12-03 19:24:34][SCRAPER] Échecs: 0
-[2025-12-03 19:24:34][SCRAPER] Arrêt: 5 collisions consécutives
-[2025-12-03 19:24:34][PY] 
-[2025-12-03 19:24:34][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:24:34][PY] ✨ RÉSUMÉ
-[2025-12-03 19:24:34][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2025-12-03 19:24:34][PY] Total conversations: 9
-[2025-12-03 19:24:34][PY] Nouveaux messages: 4
-[2025-12-03 19:24:34][PY] Succès: 9
-[2025-12-03 19:24:34][PY] Échecs: 0
-[2025-12-03 19:24:34][PY] Arrêt: 5 collisions consécutives
-[2025-12-03 19:24:35][PY] 📱 Notification Telegram envoyée
-[2025-12-03 19:24:35][PY] 🧹 Config temporaire supprimée: /Users/mj/Sites/ann2/config/temp_docgemini.json
+[2025-12-03 20:37:48][BASH] Python: /Users/mj/Sites/ann2/venv/bin/python
+[2025-12-03 20:37:48][BASH] Dependencies OK
+[2025-12-03 20:37:48][BASH] Lancement scraper...
+[2025-12-03 20:37:48][BASH] Scraper PID: 13885
+[2025-12-03 20:37:48][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:48][PY] 🚀 SCRAPER ANNONCES.NC - PYTHON LAUNCHER
+[2025-12-03 20:37:48][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:37:48][PY] 📋 Chargement configuration...
+[2025-12-03 20:37:49][PY] 📊 Base actuelle: 0 messages
+[2025-12-03 20:37:49][PY] 🆕 Base vide détectée → MODE FULL automatique
+[2025-12-03 20:37:49][PY] 🔄 MODE FULL: 24 pages pour 600 conversations
+[2025-12-03 20:37:49][PY]    Email: docgemini@gmail.com
+[2025-12-03 20:37:49][PY]    API: http://localhost/ann2/api.php?action=save
+[2025-12-03 20:37:49][PY]    Max conversations: 600
+[2025-12-03 20:37:49][PY]    Smart stop: False
+[2025-12-03 20:37:49][PY]    Database: annonces_messages_docgemini
+[2025-12-03 20:37:49][PY] 📜 Chargement scripts JS...
+[2025-12-03 20:37:49][PY] 🌐 Lancement CHROMIUM (HEADLESS)...
+[2025-12-03 20:37:49][PY] 🔗 Navigation vers https://annonces.nc/dashboard/conversations...
+[2025-12-03 20:37:50][BASH] Process running
+[2025-12-03 20:37:53][JS] tarteaucitron script loaded
+[2025-12-03 20:37:54][JS] 1
+[2025-12-03 20:37:55][JS] 2
+[2025-12-03 20:37:56][JS] 3
+[2025-12-03 20:37:57][JS] 4
+[2025-12-03 20:37:58][JS] 5
+[2025-12-03 20:37:59][JS] 6
+[2025-12-03 20:38:00][JS] 7
+[2025-12-03 20:38:01][JS] 8
+[2025-12-03 20:38:02][JS] 9
+[2025-12-03 20:38:03][JS] 10
+[2025-12-03 20:38:07][PY] ✅ Page chargée
+[2025-12-03 20:38:09][PY] 💉 Injection config dans localStorage...
+[2025-12-03 20:38:09][JS] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[2025-12-03 20:38:09][PYTHON] Config injectée dans localStorage
+[2025-12-03 20:38:09][PY] 
+[2025-12-03 20:38:09][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:09][PY] 🔐 ÉTAPE 1/2 : LOGIN
+[2025-12-03 20:38:09][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:09][LOGIN] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:09][LOGIN] 🔐 LOGIN ANNONCES.NC
+[2025-12-03 20:38:09][LOGIN] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:09][LOGIN] Config OK
+[2025-12-03 20:38:09][LOGIN] Email: docgemini@gmail.com
+[2025-12-03 20:38:09][LOGIN] ⏳ Attente modal (1500ms)...
+[2025-12-03 20:38:09][JS] Failed to load resource: the server responded with a status of 401 (Unauthorized)
+[2025-12-03 20:38:11][LOGIN] 🔍 Recherche modal: mat-dialog-container annonces-login
+[2025-12-03 20:38:11][LOGIN] ⚠️  Modal détecté, login en cours...
+[2025-12-03 20:38:11][LOGIN] 📝 Remplissage formulaire...
+[2025-12-03 20:38:11][LOGIN] 👆 Clic submit...
+[2025-12-03 20:38:11][LOGIN] ⏳ Attente disparition modal (5000ms)...
+[2025-12-03 20:38:16][LOGIN] ✅✅✅ Login réussi !
+[2025-12-03 20:38:16][LOGIN] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:16][PY] ✅ Login: Login réussi
+[2025-12-03 20:38:16][PY] ⏳ Attente stabilisation après login (5s)...
+[2025-12-03 20:38:21][PY] 💉 Ré-injection config...
+[2025-12-03 20:38:21][PYTHON] Config injectée dans localStorage
+[2025-12-03 20:38:21][PY] 
+[2025-12-03 20:38:21][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:21][PY] 📊 ÉTAPE 2/2 : SCRAPING
+[2025-12-03 20:38:21][PY] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:21][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:21][SCRAPER] 🚀 SCRAPER ANNONCES.NC
+[2025-12-03 20:38:21][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:21][SCRAPER] ✅ Config chargée
+[2025-12-03 20:38:21][SCRAPER] API: http://localhost/ann2/api.php?action=save
+[2025-12-03 20:38:21][SCRAPER] Max pages: 24
+[2025-12-03 20:38:21][SCRAPER] Max conversations: 600
+[2025-12-03 20:38:21][SCRAPER] Smart stop: NON
+[2025-12-03 20:38:21][SCRAPER] 
+[2025-12-03 20:38:21][SCRAPER] 🔍 Vérification présence conversations...
+[2025-12-03 20:38:21][SCRAPER]    Sélecteur: .conversations__sidebar__content > .clickable
+[2025-12-03 20:38:23][SCRAPER] ✅ 25 conversations détectées
+[2025-12-03 20:38:23][SCRAPER] 
+[2025-12-03 20:38:23][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:23][SCRAPER] 📋 CHARGEMENT CONVERSATIONS
+[2025-12-03 20:38:23][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:23][SCRAPER] Conversations chargées: 25
+[2025-12-03 20:38:23][SCRAPER] 📄 Chargement page 1/24
+[2025-12-03 20:38:24][SCRAPER] Conversations chargées: 50
+[2025-12-03 20:38:24][SCRAPER] 📄 Chargement page 2/24
+[2025-12-03 20:38:25][SCRAPER] Conversations chargées: 50
+[2025-12-03 20:38:25][SCRAPER] 📄 Chargement page 3/24
+[2025-12-03 20:38:26][SCRAPER] Conversations chargées: 100
+[2025-12-03 20:38:26][SCRAPER] 📄 Chargement page 4/24
+[2025-12-03 20:38:27][SCRAPER] Conversations chargées: 125
+[2025-12-03 20:38:27][SCRAPER] 📄 Chargement page 5/24
+[2025-12-03 20:38:28][SCRAPER] Conversations chargées: 150
+[2025-12-03 20:38:28][SCRAPER] 📄 Chargement page 6/24
+[2025-12-03 20:38:29][SCRAPER] Conversations chargées: 175
+[2025-12-03 20:38:29][SCRAPER] 📄 Chargement page 7/24
+[2025-12-03 20:38:30][SCRAPER] Conversations chargées: 200
+[2025-12-03 20:38:30][SCRAPER] 📄 Chargement page 8/24
+[2025-12-03 20:38:31][SCRAPER] Conversations chargées: 225
+[2025-12-03 20:38:31][SCRAPER] 📄 Chargement page 9/24
+[2025-12-03 20:38:32][SCRAPER] Conversations chargées: 250
+[2025-12-03 20:38:32][SCRAPER] 📄 Chargement page 10/24
+[2025-12-03 20:38:33][SCRAPER] Conversations chargées: 250
+[2025-12-03 20:38:33][SCRAPER] 📄 Chargement page 11/24
+[2025-12-03 20:38:35][SCRAPER] Conversations chargées: 300
+[2025-12-03 20:38:35][SCRAPER] 📄 Chargement page 12/24
+[2025-12-03 20:38:36][SCRAPER] Conversations chargées: 325
+[2025-12-03 20:38:36][SCRAPER] 📄 Chargement page 13/24
+[2025-12-03 20:38:37][SCRAPER] Conversations chargées: 325
+[2025-12-03 20:38:37][SCRAPER] 📄 Chargement page 14/24
+[2025-12-03 20:38:38][SCRAPER] Conversations chargées: 375
+[2025-12-03 20:38:38][SCRAPER] 📄 Chargement page 15/24
+[2025-12-03 20:38:39][SCRAPER] Conversations chargées: 400
+[2025-12-03 20:38:39][SCRAPER] 📄 Chargement page 16/24
+[2025-12-03 20:38:40][SCRAPER] Conversations chargées: 425
+[2025-12-03 20:38:40][SCRAPER] 📄 Chargement page 17/24
+[2025-12-03 20:38:41][SCRAPER] Conversations chargées: 450
+[2025-12-03 20:38:41][SCRAPER] 📄 Chargement page 18/24
+[2025-12-03 20:38:42][SCRAPER] Conversations chargées: 475
+[2025-12-03 20:38:42][SCRAPER] 📄 Chargement page 19/24
+[2025-12-03 20:38:43][SCRAPER] Conversations chargées: 500
+[2025-12-03 20:38:43][SCRAPER] 📄 Chargement page 20/24
+[2025-12-03 20:38:44][SCRAPER] Conversations chargées: 525
+[2025-12-03 20:38:44][SCRAPER] 📄 Chargement page 21/24
+[2025-12-03 20:38:45][SCRAPER] Conversations chargées: 550
+[2025-12-03 20:38:45][SCRAPER] 📄 Chargement page 22/24
+[2025-12-03 20:38:46][SCRAPER] Conversations chargées: 575
+[2025-12-03 20:38:46][SCRAPER] 📄 Chargement page 23/24
+[2025-12-03 20:38:47][SCRAPER] Conversations chargées: 600
+[2025-12-03 20:38:47][SCRAPER] ✅ Limite atteinte (600)
+[2025-12-03 20:38:47][SCRAPER] 
+[2025-12-03 20:38:47][SCRAPER] ✅ 23 pages chargées
+[2025-12-03 20:38:47][SCRAPER] 
+[2025-12-03 20:38:47][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:47][SCRAPER] 💬 TRAITEMENT 600 CONVERSATIONS
+[2025-12-03 20:38:47][SCRAPER] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2025-12-03 20:38:47][SCRAPER] 
+[2025-12-03 20:38:47][SCRAPER] [1/600] Bi versa chaud - Utilisateur 193387
+[2025-12-03 20:38:48][SCRAPER]    📨 18 messages
+[2025-12-03 20:38:49][SCRAPER]    📸 3 images
+[2025-12-03 20:38:51][SCRAPER]    📄 Annonce 2402492
+[2025-12-03 20:38:51][SCRAPER]    ✅ Sauvegardé (18 nouveaux)
+[2025-12-03 20:38:51][SCRAPER] 
+[2025-12-03 20:38:51][SCRAPER] [2/600] Bi versa chaud - Utilisateur 205712
+[2025-12-03 20:38:52][SCRAPER]    📨 10 messages
+[2025-12-03 20:38:52][SCRAPER]    📸 2 images
+[2025-12-03 20:38:54][SCRAPER]    📄 Annonce 2402492
+[2025-12-03 20:38:54][SCRAPER]    ✅ Sauvegardé (10 nouveaux)
+[2025-12-03 20:38:54][SCRAPER] 
+[2025-12-03 20:38:54][SCRAPER] [3/600] Bi versa chaud - Utilisateur 186061
+[2025-12-03 20:38:55][SCRAPER]    📨 3 messages
+[2025-12-03 20:38:55][SCRAPER]    📸 3 images
+[2025-12-03 20:38:58][SCRAPER]    📄 Annonce 2402492
+[2025-12-03 20:38:58][SCRAPER]    ✅ Sauvegardé (3 nouveaux)
+[2025-12-03 20:38:58][SCRAPER] 
+[2025-12-03 20:38:58][SCRAPER] [4/600] Bi versa chaud - Utilisateur 200845
+[2025-12-03 20:38:58][SCRAPER]    📨 4 messages
+[2025-12-03 20:39:01][SCRAPER]    📄 Annonce 2402492
+[2025-12-03 20:39:01][SCRAPER]    ✅ Sauvegardé (4 nouveaux)
+[2025-12-03 20:39:01][SCRAPER] 
+[2025-12-03 20:39:01][SCRAPER] [5/600] Bi versa chaud - Utilisateur 368436
+[2025-12-03 20:39:02][SCRAPER]    📨 3 messages
+[2025-12-03 20:39:04][SCRAPER]    📄 Annonce 2402492
+[2025-12-03 20:39:04][SCRAPER]    ✅ Sauvegardé (3 nouveaux)
+[2025-12-03 20:39:04][SCRAPER] 
+[2025-12-03 20:39:05][SCRAPER] [6/600] Passif.  Chaud  déplace - Utilisateur 407658
+[2025-12-03 20:39:05][SCRAPER]    📨 3 messages
+[2025-12-03 20:39:08][SCRAPER]    📄 Annonce 2421231
+[2025-12-03 20:39:08][SCRAPER]    ✅ Sauvegardé (3 nouveaux)
+[2025-12-03 20:39:08][SCRAPER] 
