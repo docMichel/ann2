@@ -264,17 +264,25 @@ $username = explode('@', $user['email'])[0];
         </div>
     </div>
 
+
+    <!-- Logs modal SIMPLE -->
+    <div id="logsModal">
+        <div id="logsModalInner">
+            <div id="logsModalHeader">
+                <span id="logsModalTitle">📊 Logs du scraper</span>
+                <button id="logsModalClose">×</button>
+            </div>
+            <div id="logsContent"></div>
+        </div>
+    </div>
+
+
     <script src="app.js"></script>
     <script>
         // ========== SCRAPER ==========
 
         async function launchScraper() {
             const btn = document.getElementById('btnSync');
-
-            if (btn.classList.contains('running')) {
-                showFlash('⚠️ Un scraper est déjà en cours');
-                return;
-            }
 
             if (!confirm('Lancer la récupération des messages ?\n\nCela peut prendre plusieurs minutes.')) {
                 return;
@@ -293,15 +301,16 @@ $username = explode('@', $user['email'])[0];
                 if (result.status === 'started') {
                     showFlash('✅ Scraper lancé en arrière-plan');
 
+                    // Ouvrir le modal de logs
+                    openLogsModal();
+
                     // Vérifier le statut périodiquement
                     checkScraperStatus();
-                } else if (result.status === 'running') {
-                    showFlash('⚠️ ' + result.message);
                 } else {
                     throw new Error(result.message || 'Erreur inconnue');
                 }
             } catch (e) {
-                showFlash('❌ Erreur: ' + e.message);
+                showFlash('❌ Erreur: ' + e.message, 10000);
                 btn.disabled = false;
                 btn.classList.remove('running');
                 btn.textContent = '🔄 Récupérer';
@@ -337,11 +346,97 @@ $username = explode('@', $user['email'])[0];
             }, 10000); // Vérifier toutes les 10 secondes
         }
 
-        function logout() {
-            if (confirm('Se déconnecter ?')) {
-                window.location.href = 'auth/logout.php';
+        // ========== LOGS MODAL - REFAIT DE ZÉRO ==========
+
+        let logsEventSource = null;
+
+        function openLogsModal() {
+            const modal = document.getElementById('logsModal');
+            const content = document.getElementById('logsContent');
+
+            content.innerHTML = '<div class="log-line">🔌 Connexion...</div>';
+            modal.classList.add('active');
+
+            startLogsStream();
+        }
+
+        function closeLogsModal() {
+            const modal = document.getElementById('logsModal');
+            modal.classList.remove('active');
+
+            if (logsEventSource) {
+                logsEventSource.close();
+                logsEventSource = null;
             }
         }
+
+        function addLogLine(text, type = '') {
+            const content = document.getElementById('logsContent');
+            const line = document.createElement('div');
+            line.className = 'log-line ' + type;
+            line.textContent = text;
+            content.appendChild(line);
+            content.scrollTop = content.scrollHeight;
+        }
+
+        function startLogsStream() {
+            if (logsEventSource) {
+                logsEventSource.close();
+            }
+
+            logsEventSource = new EventSource('stream-logs.php');
+
+            logsEventSource.addEventListener('connected', () => {
+                addLogLine('✅ Connecté au stream');
+            });
+
+            logsEventSource.addEventListener('log', (e) => {
+                const data = JSON.parse(e.data);
+                addLogLine(data.line);
+            });
+
+            logsEventSource.addEventListener('info', (e) => {
+                const data = JSON.parse(e.data);
+                addLogLine('ℹ️  ' + data.message);
+            });
+
+            logsEventSource.addEventListener('error', (e) => {
+                if (e.data) {
+                    const data = JSON.parse(e.data);
+                    addLogLine('❌ ' + data.message, 'error');
+                }
+            });
+
+            logsEventSource.addEventListener('complete', (e) => {
+                const data = JSON.parse(e.data);
+                addLogLine('✅ ' + data.message, 'success');
+                setTimeout(() => {
+                    closeLogsModal();
+                }, 3000);
+            });
+
+            logsEventSource.onerror = () => {
+                addLogLine('❌ Erreur connexion stream', 'error');
+            };
+        }
+
+        // Event listeners pour fermer le modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('logsModal');
+            const closeBtn = document.getElementById('logsModalClose');
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeLogsModal);
+            }
+
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target.id === 'logsModal') {
+                        closeLogsModal();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 

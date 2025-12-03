@@ -938,6 +938,10 @@ function closeLightbox() {
 // ========== FLASH MESSAGE ==========
 
 function showFlash(message, duration = 2000) {
+    console.log("FLASH " + message);
+    if (message.includes('❌') || message.includes('Erreur')) {
+        duration = 10000;
+    }
     const flash = document.createElement('div');
     flash.className = 'flash';
     flash.textContent = message;

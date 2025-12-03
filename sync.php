@@ -4,56 +4,47 @@
  * Lance le scraper en arrière-plan pour l'utilisateur connecté
  */
 
-require_once __DIR__ . '/auth/auth.php';
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth/auth.php';
 Auth::requireAuth();
 
 header('Content-Type: application/json');
 
 $user = Auth::getCurrentUser();
-$username = explode('@', $user['email'])[0];  // ← Utiliser email
+$username = explode('@', $user['email'])[0];
 $lockFile = BASE_PATH . '/locks/' . $username . '.lock';
 $logFile = BASE_PATH . '/logs/' . $username . '_sync.log';
 
 // Créer les dossiers si nécessaire
-@mkdir(__DIR__ . '/locks', 0755, true);
-@mkdir(__DIR__ . '/logs', 0755, true);
-
+@mkdir(BASE_PATH . '/locks', 0755, true);
+@mkdir(BASE_PATH . '/logs', 0755, true);
 // ========== VÉRIFIER SI UN SCRAPER TOURNE DÉJÀ ==========
 
 if (file_exists($lockFile)) {
-    $lockTime = filemtime($lockFile);
-    $elapsed = time() - $lockTime;
+    $oldPid = trim(file_get_contents($lockFile));
 
-    // Timeout de 2h (configurable)
-    $timeout = 7200;
+    // Si le process existe encore, on le kill
+    if (!empty($oldPid) && is_numeric($oldPid) && posix_getpgid($oldPid) !== false) {
+        posix_kill($oldPid, SIGTERM);
+        sleep(1); // Laisser le temps au process de mourir
 
-    if ($elapsed < $timeout) {
-        // Lire le PID si disponible
-        $pid = file_get_contents($lockFile);
-
-        // Vérifier si le process tourne encore
-        if (posix_getpgid($pid) !== false) {
-            echo json_encode([
-                'status' => 'running',
-                'message' => 'Un scraper est déjà en cours',
-                'elapsed' => $elapsed,
-                'pid' => $pid
-            ]);
-            exit;
+        // Si toujours vivant, SIGKILL
+        if (posix_getpgid($oldPid) !== false) {
+            posix_kill($oldPid, SIGKILL);
         }
+
+        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] ⚠️  Ancien scraper (PID: $oldPid) arrêté\n", FILE_APPEND);
     }
 
-    // Lock expiré ou process mort, on le supprime
+    // Supprimer l'ancien lock
     unlink($lockFile);
 }
-
 // ========== CRÉER LA CONFIG TEMPORAIRE POUR LE SCRAPER ==========
 
 $scraperConfig = [
-    'email' => $user['email'],  // ← Pas annonces_email
+    'email' => $user['email'],
     'password' => $user['annonces_password'],
-    'db_name' => $user['db_name'],  // ← AJOUTE ÇA
+    'db_name' => $user['db_name'],
     'apiUrl' => 'http://localhost' . dirname($_SERVER['PHP_SELF']) . '/api.php?action=save',
     'maxPages' => 5,
     'maxConversations' => 600,
@@ -88,29 +79,57 @@ $scraperConfig = [
 $tempConfigFile = BASE_PATH . '/config/temp_' . $username . '.json';
 file_put_contents($tempConfigFile, json_encode($scraperConfig, JSON_PRETTY_PRINT));
 
-// ========== LANCER LE SCRAPER EN ARRIÈRE-PLAN ==========
+// ========== LANCER LE SCRAPER VIA SCRIPT SHELL ==========
 
-$pythonCmd = sprintf(
-    'cd %s && %s/venv/bin/python3 sync.py --config=%s > %s 2>&1 & echo $!',
-    escapeshellarg(BASE_PATH),
-    escapeshellarg(BASE_PATH),
-    escapeshellarg($tempConfigFile),
-    escapeshellarg($logFile)
-);
+$launchScript = BASE_PATH . '/launch-scraper.sh';
 
-// Exécuter et récupérer le PID
-$pid = shell_exec($pythonCmd);
-$pid = trim($pid);
+// Vérifier que le script existe et est exécutable
+if (!file_exists($launchScript)) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Script launcher introuvable: ' . $launchScript
+    ]);
+    exit;
+}
 
-// Créer le lock avec le PID
-file_put_contents($lockFile, $pid);
+// Rendre exécutable si nécessaire
+if (!is_executable($launchScript)) {
+    chmod($launchScript, 0755);
+}
 
 // Logger le démarrage
-file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] Démarrage scraper (PID: $pid)\n", FILE_APPEND);
+file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", FILE_APPEND);
+file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] 🔵 DEMANDE DE SCRAPING VIA WEB\n", FILE_APPEND);
+file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] User: $username\n", FILE_APPEND);
+file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n", FILE_APPEND);
 
-echo json_encode([
-    'status' => 'started',
-    'message' => 'Scraper lancé en arrière-plan',
-    'pid' => $pid,
-    'log_file' => basename($logFile)
-]);
+// Lancer le script shell
+$cmd = sprintf(
+    '%s %s %s %s 2>&1',
+    escapeshellarg($launchScript),
+    escapeshellarg($tempConfigFile),
+    escapeshellarg($logFile),
+    escapeshellarg($lockFile)
+);
+
+exec($cmd, $output, $returnCode);
+
+// Lire le PID du lock file
+$pid = file_exists($lockFile) ? trim(file_get_contents($lockFile)) : null;
+
+if ($returnCode === 0 && $pid) {
+    echo json_encode([
+        'status' => 'started',
+        'message' => 'Scraper lancé en arrière-plan',
+        'pid' => $pid,
+        'log_file' => basename($logFile),
+        'output' => implode("\n", $output)
+    ]);
+} else {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Échec lancement scraper',
+        'return_code' => $returnCode,
+        'output' => implode("\n", $output)
+    ]);
+}
