@@ -244,7 +244,7 @@ class Auth
     private static function createDatabase($dbName)
     {
         $pdo = new PDO(
-            "mysql:host=localhost",
+            "mysql:host=127.0.0.1",
             'root',
             'mysqlroot',
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]

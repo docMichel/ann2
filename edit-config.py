@@ -23,7 +23,7 @@ CONFIG_FILE = Path(__file__).parent / 'scraper-config.json'
 DEFAULT_CONFIG = {
     "email": "",
     "password": "",
-    "apiUrl": "http://localhost/ann2/api.php?action=save",
+    "apiUrl": "http://127.0.0.1/ann2/api.php?action=save",
     "maxPages": 2,
     "maxConversations": 30,
     "timeouts": {

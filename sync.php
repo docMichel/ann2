@@ -63,7 +63,7 @@ $scraperConfig = [
     'email' => $user['email'],
     'password' => $user['annonces_password'],
     'db_name' => $user['db_name'],
-    'apiUrl' => 'http://localhost' . dirname($_SERVER['PHP_SELF']) . '/api.php?action=save',
+    'apiUrl' => 'http://127.0.0.1' . dirname($_SERVER['PHP_SELF']) . '/api.php?action=save',
     'maxPages' => 5,
     'maxConversations' => 600,
     'timeouts' => [
