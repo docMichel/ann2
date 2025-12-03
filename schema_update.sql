@@ -71,11 +71,3 @@ CREATE INDEX idx_messages_conversation ON messages(conversation_id);
 CREATE INDEX idx_messages_datetime ON messages(message_datetime);
 
 CREATE INDEX idx_annonces_deleted ON annonces(is_deleted);
-
--- Migration: Ajouter is_deleted si la colonne n'existe pas
-ALTER TABLE
-    annonces
-ADD
-    COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE
-AFTER
-    description;
