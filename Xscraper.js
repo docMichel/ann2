@@ -1,7 +1,6 @@
 /**
- * SCRAPER - Smart Scraping avec détection annonces disparues
+ * SCRAPER - Smart Scraping
  * S'arrête après N conversations consécutives sans nouveaux messages
- * NE cherche l'annonce QUE si elle existe vraiment
  */
 (async function () {
     'use strict';
@@ -36,16 +35,12 @@
     // Smart stop config
     const SMART_STOP = CONFIG.smartStop !== false;
     const COLLISION_THRESHOLD = CONFIG.collisionThreshold || 5;
-    
-    // Option pour désactiver la recherche d'annonce (par défaut: activée)
-    const FETCH_ANNONCE = CONFIG.fetchAnnonce !== false;
 
     S.log('✅ Config chargée');
     S.log('API: ' + CONFIG.apiUrl);
     S.log('Max pages: ' + CONFIG.maxPages);
     S.log('Max conversations: ' + CONFIG.maxConversations);
     S.log('Smart stop: ' + (SMART_STOP ? 'OUI (seuil=' + COLLISION_THRESHOLD + ')' : 'NON'));
-    S.log('Fetch annonce: ' + (FETCH_ANNONCE ? 'OUI' : 'NON'));
     S.log('');
 
     // ========== SMART STOP VARIABLES ==========
@@ -121,85 +116,37 @@
         return images;
     }
 
-    // ========== EXTRACTION ANNONCE - DÉTECTION INTELLIGENTE ==========
+    // ========== EXTRACTION ANNONCE ==========
     async function getAnnonceData() {
         const btn = document.querySelector(CONFIG.selectors.annonceBtn);
-        if (!btn) {
-            S.log('   ⚠️  Bouton annonce introuvable');
-            return null;
+        if (!btn) return null;
+
+        btn.click();
+        await wait(CONFIG.timeouts.annonceModal);
+
+        const descElement = document.querySelector(CONFIG.selectors.annonceDesc);
+        const description = descElement?.textContent.trim() || '';
+
+        const badgeElement = document.querySelector(CONFIG.selectors.annonceBadge);
+        const badgeText = badgeElement?.textContent.trim() || '';
+        const annonceIdMatch = badgeText.match(/Annonce (\d+)/);
+        const annonceId = annonceIdMatch ? annonceIdMatch[1] : null;
+
+        const closeBtn = document.querySelector(CONFIG.selectors.annonceClose);
+        if (closeBtn) {
+            closeBtn.click();
+            await wait(500);
         }
 
-        try {
-            btn.click();
-            await wait(CONFIG.timeouts.annonceModal);
-
-            // Vérifier si l'annonce a disparu
-            const errorMsg = document.querySelector(CONFIG.selectors.annonceErrorMsg);
-            if (errorMsg?.textContent.includes("n'est plus en ligne")) {
-                S.log('   ⚠️  Annonce disparue (message: "n\'est plus en ligne")');
-                
-                // Fermer la modal
-                const closeBtn = document.querySelector(CONFIG.selectors.annonceClose);
-                if (closeBtn) {
-                    closeBtn.click();
-                    await wait(500);
-                }
-                
-                return null; // Pas d'envoi à l'API
-            }
-
-            // L'annonce existe, chercher les infos
-            const badgeElement = document.querySelector(CONFIG.selectors.annonceBadge);
-            const badgeText = badgeElement?.textContent.trim() || '';
-            const annonceIdMatch = badgeText.match(/Annonce (\d+)/);
-            
-            if (!annonceIdMatch) {
-                S.log('   ⚠️  Badge trouvé mais pas de numéro d\'annonce');
-                const closeBtn = document.querySelector(CONFIG.selectors.annonceClose);
-                if (closeBtn) closeBtn.click();
-                await wait(500);
-                return null;
-            }
-
-            const annonceId = annonceIdMatch[1];
-            
-            const descElement = document.querySelector(CONFIG.selectors.annonceDesc);
-            const description = descElement?.textContent.trim() || '';
-
-            // Fermer la modal
-            const closeBtn = document.querySelector(CONFIG.selectors.annonceClose);
-            if (closeBtn) {
-                closeBtn.click();
-                await wait(500);
-            }
-
-            return { 
-                id: annonceId, 
-                description: description 
-            };
-            
-        } catch (error) {
-            S.error('   ❌ Erreur extraction annonce: ' + error.message);
-            return null;
-        }
+        return { id: annonceId, description: description };
     }
 
     // ========== API ==========
     async function sendToAPI(data) {
         try {
-            // Construire les headers
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            
-            // Ajouter le header X-User-Database si disponible dans la config
-            if (CONFIG.db_name) {
-                headers['X-User-Database'] = CONFIG.db_name;
-            }
-            
             const response = await fetch(CONFIG.apiUrl, {
                 method: 'POST',
-                headers: headers,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
@@ -267,8 +214,6 @@
 
     // ========== BOUCLE CONVERSATIONS ==========
     let processed = 0;
-    let annonceFetched = 0;
-    let annonceSkipped = 0;
 
     for (let i = 0; i < totalToProcess; i++) {
         // Vérifier arrêt smart
@@ -318,38 +263,22 @@
                 S.log('   📸 ' + images.length + ' images');
             }
 
-            // ========== ANNONCE - DÉTECTION INTELLIGENTE ==========
-            let annonceData = null;
-            
-            if (FETCH_ANNONCE) {
-                annonceData = await getAnnonceData();
-                if (annonceData?.id) {
-                    S.log('   📄 Annonce ' + annonceData.id);
-                    annonceFetched++;
-                } else {
-                    annonceSkipped++;
-                }
-            } else {
-                S.log('   ⏭️  Récupération annonce désactivée');
-                annonceSkipped++;
+            // Annonce
+            const annonceData = await getAnnonceData();
+            if (annonceData?.id) {
+                S.log('   📄 Annonce ' + annonceData.id);
             }
 
-            // ========== PAYLOAD - NE PAS ENVOYER NULL ==========
             const payload = {
                 conversation_id: xhrData.conversationId,
                 user_id: userId,
                 info: { title: title, user: userName, site: 'annonces.nc' },
                 messages: xhrData.messages,
-                images: images
+                images: images,
+                annonce_id: annonceData?.id,
+                annonce_url: annonceData?.id ? 'https://annonces.nc/annonce/' + annonceData.id : null,
+                annonce_description: annonceData?.description
             };
-
-            // N'ajouter les champs annonce QUE si on a réussi à les récupérer
-            if (annonceData?.id) {
-                payload.annonce_id = annonceData.id;
-                payload.annonce_url = 'https://annonces.nc/annonce/' + annonceData.id;
-                payload.annonce_description = annonceData.description || null;
-            }
-            // Sinon, on n'envoie rien, l'API gardera les valeurs existantes
 
             const result = await sendToAPI(payload);
             processed++;
@@ -392,8 +321,6 @@
     S.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     S.log('Conversations traitées: ' + processed + '/' + totalToProcess);
     S.log('Nouveaux messages: ' + totalNewMessages);
-    S.log('Annonces récupérées: ' + annonceFetched);
-    S.log('Annonces non récupérées: ' + annonceSkipped);
     S.log('Succès: ' + results.filter(r => r.success).length);
     S.log('Échecs: ' + results.filter(r => !r.success).length);
     S.log('Arrêt: ' + stopReason);
@@ -402,8 +329,6 @@
         success: true,
         total: processed,
         total_new_messages: totalNewMessages,
-        annonces_fetched: annonceFetched,
-        annonces_skipped: annonceSkipped,
         succeeded: results.filter(r => r.success).length,
         failed: results.filter(r => !r.success).length,
         stop_reason: stopReason,

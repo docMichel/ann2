@@ -237,6 +237,12 @@ def run_scraper(headless=True, browser_type='chromium'):
     login_js = load_script(LOGIN_JS)
     scraper_js = load_script(SCRAPER_JS)
     
+    # Modifier scraper.js pour ajouter le header X-User-Database
+    scraper_js_modified = scraper_js.replace(
+        "headers: { 'Content-Type': 'application/json' }",
+        f"headers: {{ 'Content-Type': 'application/json', 'X-User-Database': '{db_name}' }}"
+    )
+    
     mode = 'HEADLESS' if headless else 'HEADFUL'
     log(f'🌐 Lancement {browser_type.upper()} ({mode})...')
     
@@ -308,7 +314,7 @@ def run_scraper(headless=True, browser_type='chromium'):
             log('📊 ÉTAPE 2/2 : SCRAPING')
             log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
             
-            scraper_result = page.evaluate(scraper_js)
+            scraper_result = page.evaluate(scraper_js_modified)
             
             if not scraper_result.get('success'):
                 error(f'Échec scraping: {scraper_result.get("error")}')

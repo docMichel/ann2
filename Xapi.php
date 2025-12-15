@@ -1,8 +1,8 @@
 <?php
 
 /**
- * API REST - Protection contre écrasement des annonces disparues
- * Ne met à jour l'annonce QUE si annonce_id est fourni dans le payload
+ * API REST multi-utilisateurs avec gestion robuste des erreurs
+ * Smart Scraping: retourne new_messages pour permettre l'arrêt intelligent
  */
 require_once __DIR__ . '/telegram-notify.php';
 
@@ -36,13 +36,13 @@ require_once __DIR__ . '/config.php';
 
 $action = $_GET['action'] ?? '';
 
-// Auth
+// Auth : save et stats (avec header) peuvent passer sans auth
 $needsAuth = true;
 
 if ($action === 'save') {
-    $needsAuth = false;
+    $needsAuth = false;  // save utilise toujours le header
 } elseif ($action === 'stats' && isset($_SERVER['HTTP_X_USER_DATABASE'])) {
-    $needsAuth = false;
+    $needsAuth = false;  // stats avec header = scraper qui vérifie la base
 }
 
 if ($needsAuth) {
@@ -55,11 +55,13 @@ if ($needsAuth) {
 $dbName = null;
 
 if ($action === 'save' || isset($_SERVER['HTTP_X_USER_DATABASE'])) {
+    // Action avec header = scraper ou API externe
     $dbName = $_SERVER['HTTP_X_USER_DATABASE'] ?? null;
     if (!$dbName) {
         jsonError('Header X-User-Database manquant', 400);
     }
 } else {
+    // Action normale via interface web
     require_once __DIR__ . '/auth/auth.php';
     $user = Auth::getCurrentUser();
     $dbName = $user['db_name'];
@@ -150,7 +152,7 @@ try {
     jsonError('Erreur serveur: ' . $e->getMessage(), 500);
 }
 
-// ========== SAVE CONVERSATION - PROTECTION ANNONCES ==========
+// ========== SAVE CONVERSATION ==========
 
 function saveConversation($pdo, $dbName)
 {
@@ -169,7 +171,7 @@ function saveConversation($pdo, $dbName)
     logDebug("📦 Data reçue:");
     logDebug("   - conversation_id: " . ($data['conversation_id'] ?? 'NULL'));
     logDebug("   - user_id: " . ($data['user_id'] ?? 'NULL'));
-    logDebug("   - annonce_id fourni: " . (isset($data['annonce_id']) ? 'OUI (' . $data['annonce_id'] . ')' : 'NON'));
+    logDebug("   - annonce_id: " . ($data['annonce_id'] ?? 'NULL'));
     logDebug("   - messages: " . count($data['messages'] ?? []));
 
     $newMessagesCount = 0;
@@ -177,20 +179,19 @@ function saveConversation($pdo, $dbName)
     try {
         $pdo->beginTransaction();
 
-        // ========== 1. ANNONCE - LOGIQUE PROTÉGÉE ==========
-        $annonceId = null;
+        // 1. Annonce
+        $annonceId = $data['annonce_id'] ?? null;
 
-        if (isset($data['annonce_id']) && !empty($data['annonce_id'])) {
-            $annonceId = $data['annonce_id'];
+        if ($annonceId) {
             logDebug("📄 Traitement annonce ID: $annonceId");
 
             $stmt = $pdo->prepare("
                 INSERT INTO annonces (id, url, title, site, description, is_deleted) 
                 VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE 
-                    url = COALESCE(VALUES(url), url),
-                    title = COALESCE(VALUES(title), title),
-                    site = COALESCE(VALUES(site), site),
+                    url = VALUES(url),
+                    title = VALUES(title),
+                    site = VALUES(site),
                     description = COALESCE(VALUES(description), description),
                     is_deleted = VALUES(is_deleted)
             ");
@@ -205,16 +206,14 @@ function saveConversation($pdo, $dbName)
                     $data['annonce_description'] ?? null,
                     $isDeleted ? 1 : 0
                 ]);
-                logDebug("✅ Annonce $annonceId OK (COALESCE protection active)");
+                logDebug("✅ Annonce $annonceId OK");
             } catch (Exception $e) {
                 logDebug("⚠️ Erreur annonce: " . $e->getMessage());
                 $annonceId = null;
             }
-        } else {
-            logDebug("⏭️  Pas d'annonce_id fourni, conservation de l'existant");
         }
 
-        // ========== 2. USER ==========
+        // 2. User
         $userId = $data['user_id'] ?? null;
         if (!$userId) {
             logDebug("❌ user_id manquant !");
@@ -229,7 +228,7 @@ function saveConversation($pdo, $dbName)
         $stmt->execute([$userId, $data['info']['user'] ?? "Utilisateur $userId"]);
         logDebug("✅ User $userId OK");
 
-        // ========== 3. CONVERSATION ==========
+        // 3. Conversation
         $conversationId = $data['conversation_id'] ?? null;
         if (!$conversationId) {
             logDebug("❌ conversation_id manquant !");
@@ -237,31 +236,15 @@ function saveConversation($pdo, $dbName)
         }
 
         logDebug("💬 Traitement conversation ID: $conversationId");
-
-        // Récupérer l'annonce_id existante si on n'en a pas fourni de nouvelle
-        if (!$annonceId) {
-            $stmtCheck = $pdo->prepare("SELECT annonce_id FROM conversations WHERE id = ?");
-            $stmtCheck->execute([$conversationId]);
-            $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-            if ($existing && $existing['annonce_id']) {
-                $annonceId = $existing['annonce_id'];
-                logDebug("   ℹ️  Annonce existante conservée: $annonceId");
-            }
-        }
-
         $stmt = $pdo->prepare("
             INSERT INTO conversations (id, annonce_id, user_id)
             VALUES (?, ?, ?)
-            ON DUPLICATE KEY UPDATE 
-                annonce_id = COALESCE(VALUES(annonce_id), annonce_id),
-                user_id = VALUES(user_id)
+            ON DUPLICATE KEY UPDATE annonce_id = COALESCE(VALUES(annonce_id), annonce_id)
         ");
         $stmt->execute([$conversationId, $annonceId, $userId]);
         logDebug("✅ Conversation $conversationId OK");
 
-        // ========== 4. MESSAGES ==========
-        logDebug("📨 Traitement messages...");
-
+        // 4. Messages
         $stmtMsg = $pdo->prepare("
             INSERT INTO messages (
                 id, conversation_id, from_me, message_text, 
@@ -284,22 +267,16 @@ function saveConversation($pdo, $dbName)
         foreach ($data['messages'] as $msg) {
             $messageId = $msg['id'] ?? null;
             if (!$messageId) {
-                logDebug("   ⚠️  Message sans ID, skip");
                 $skipped++;
                 continue;
             }
 
             $msgDatetime = parseApiDateToDateTime($msg['created_at'] ?? null);
-            if (!$msgDatetime) {
-                logDebug("   ⚠️  Message $messageId : date invalide (" . ($msg['created_at'] ?? 'NULL') . ")");
-            }
 
             // Vérifier si nouveau
             $existsStmt = $pdo->prepare("SELECT COUNT(*) FROM messages WHERE id = ?");
             $existsStmt->execute([$messageId]);
             $isNew = $existsStmt->fetchColumn() == 0;
-
-            logDebug("   🔍 Message $messageId : " . ($isNew ? "NOUVEAU" : "existe déjà"));
 
             try {
                 $stmtMsg->execute([
@@ -312,28 +289,13 @@ function saveConversation($pdo, $dbName)
                     $msg['from'] ?? null,
                     $msg['status'] ?? null
                 ]);
-
-                if ($isNew) {
-                    logDebug("   ✅ Message $messageId inséré (NOUVEAU)");
-                } else {
-                    logDebug("   ✅ Message $messageId traité (existe déjà)");
-                }
             } catch (Exception $e) {
                 logDebug("   ❌ Message $messageId ERREUR: " . $e->getMessage());
-                logDebug("   📦 Données: " . json_encode([
-                    'id' => $messageId,
-                    'conv' => $conversationId,
-                    'from_me' => ($msg['my_message'] ?? false) ? 1 : 0,
-                    'content' => substr($msg['content'] ?? '', 0, 50),
-                    'created_at' => $msg['created_at'] ?? null,
-                    'datetime' => $msgDatetime
-                ]));
             }
 
             if ($isNew) {
                 $newMessagesCount++;
             }
-
             $msgCount++;
 
             // Images
@@ -368,8 +330,7 @@ function saveConversation($pdo, $dbName)
             'messages_count' => $msgCount,
             'new_messages' => $newMessagesCount,
             'images_count' => $imgCount,
-            'skipped' => $skipped,
-            'annonce_updated' => isset($data['annonce_id'])
+            'skipped' => $skipped
         ]);
     } catch (Exception $e) {
         $pdo->rollBack();
@@ -395,6 +356,7 @@ function sendTelegramNotification($dbName, $newCount)
         }
 
         if (!$chatId) return;
+
 
         $hostname = gethostname();
         $message = "🔔 <b>$newCount nouveau(x) message(s)</b>\n\n";

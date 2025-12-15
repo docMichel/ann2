@@ -49,7 +49,6 @@ DEFAULT_CONFIG = {
         "annonceBtn": "button.btn-primary.ml-2",
         "annonceDesc": ".mat-dialog-container .card-body .pre-wrap.text-justify",
         "annonceBadge": ".mat-dialog-container .badge.badge-light.text-sm",
-        "annonceErrorMsg": ".text-lg",
         "annonceClose": ".mat-dialog-container .text-2x",
         "images": ".chat-content annonces-image img"
     }
@@ -116,9 +115,11 @@ def set_timeout(timeout_name, value):
     """Définit un timeout spécifique"""
     config = load_config()
     
-    # Ajouter ou modifier le timeout
+    # Vérifier que le timeout existe
     if timeout_name not in config['timeouts']:
-        print(f"➕ Nouveau timeout '{timeout_name}'")
+        print(f"❌ Timeout '{timeout_name}' inconnu")
+        print(f"Timeouts disponibles: {', '.join(config['timeouts'].keys())}")
+        return
     
     config['timeouts'][timeout_name] = int(value)
     save_config(config)
@@ -128,9 +129,11 @@ def set_selector(selector_name, value):
     """Définit un sélecteur CSS spécifique"""
     config = load_config()
     
-    # Ajouter ou modifier le sélecteur
+    # Vérifier que le sélecteur existe
     if selector_name not in config['selectors']:
-        print(f"➕ Nouveau sélecteur '{selector_name}'")
+        print(f"❌ Sélecteur '{selector_name}' inconnu")
+        print(f"Sélecteurs disponibles: {', '.join(config['selectors'].keys())}")
+        return
     
     config['selectors'][selector_name] = value
     save_config(config)
@@ -219,7 +222,7 @@ SÉLECTEURS CSS:
   Sélecteurs disponibles:
     - loginModal, loginEmail, loginPassword, loginSubmit
     - convList, convTitle, convUser, voirPlus
-    - annonceBtn, annonceDesc, annonceBadge, annonceErrorMsg, annonceClose
+    - annonceBtn, annonceDesc, annonceBadge, annonceClose
     - images
 
 IMPORT/EXPORT:

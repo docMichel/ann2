@@ -9,7 +9,7 @@
     "input": 200,
     "submit": 300,
     "loginSuccess": 5000,
-    "xhrTimeout": 3000,
+    "xhrTimeout": 6000,
     "annonceModal": 1500,
     "betweenConvs": 300,
     "loadMore": 1000,
@@ -28,6 +28,7 @@
     "annonceDesc": ".mat-dialog-container .card-body .pre-wrap.text-justify",
     "annonceBadge": ".mat-dialog-container .badge.badge-light.text-sm",
     "annonceClose": ".mat-dialog-container .text-2x",
-    "images": ".chat-content annonces-image img"
+    "images": ".chat-content annonces-image img",
+    "annonceErrorMsg": ".text-lg"
   }
 }
